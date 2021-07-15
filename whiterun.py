@@ -3,10 +3,6 @@ import numpy as np
 import pandas as pd
 import re
 
-SKYRIM_CONST_CALENDAR_PATH = os.path.join("E:\\", "Database", "Calendar", "cne_calendar.csv")
-SKYRIM_CONST_INSTRUMENT_INFO_PATH = os.path.join("E:\\", "Database", "Futures", "InstrumentInfo.xlsx")
-
-
 def parse_instrument_from_contract(t_contract_id: str) -> str:
     # s = 0
     # while t_contract_id[s] < "0" or t_contract_id[s] > "9":
