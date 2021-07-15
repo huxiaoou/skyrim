@@ -60,7 +60,7 @@ class CCalendar(object):
         else:
             return self.calendar_df.at[t_next_sn, "trade_date"]
 
-    def get_fix_gap_dates_list(t_bgn_date: str, t_fix_gap: int):
+    def get_fix_gap_dates_list(self, t_bgn_date: str, t_fix_gap: int):
         res = []
         for t_date in self.calendar_df["trade_date"]:
             if t_date < t_bgn_date:
