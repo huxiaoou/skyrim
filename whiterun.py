@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import re
 
+
 def parse_instrument_from_contract(t_contract_id: str) -> str:
     # s = 0
     # while t_contract_id[s] < "0" or t_contract_id[s] > "9":
@@ -48,7 +49,7 @@ class CCalendar(object):
     def get_sn(self, t_base_date: str):
         return self.reverse_df.at[t_base_date, "sn"]
 
-    def get_next_date(self, t_this_date, t_shift: int):
+    def get_next_date(self, t_this_date: str, t_shift: int):
         '''
         t_shift : >0, in the future; <0, in the past
         '''
@@ -58,6 +59,14 @@ class CCalendar(object):
             return ""
         else:
             return self.calendar_df.at[t_next_sn, "trade_date"]
+
+    def get_fix_gap_dates_list(t_bgn_date: str, t_fix_gap: int):
+        res = []
+        for t_date in self.calendar_df["trade_date"]:
+            if t_date < t_bgn_date:
+                continue
+            res.append(t_date)
+        return res[::t_fix_gap]
 
 
 class CInstrumentInfoTable(object):
