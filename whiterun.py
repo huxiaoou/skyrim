@@ -61,12 +61,8 @@ class CCalendar(object):
             return self.calendar_df.at[t_next_sn, "trade_date"]
 
     def get_fix_gap_dates_list(self, t_bgn_date: str, t_fix_gap: int):
-        res = []
-        for t_date in self.calendar_df["trade_date"]:
-            if t_date < t_bgn_date:
-                continue
-            res.append(t_date)
-        return res[::t_fix_gap]
+        t_bgn_sn = self.get_sn(t_base_date=t_bgn_date)
+        return self.calendar_df["trade_date"].iloc[t_bgn_sn::t_fix_gap].tolist()
 
 
 class CInstrumentInfoTable(object):
