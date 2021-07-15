@@ -51,7 +51,7 @@ class CCalendar(object):
 
     def get_next_date(self, t_this_date: str, t_shift: int):
         '''
-        t_shift : >0, in the future; <0, in the past
+        t_shift : > 0, in the future; < 0, in the past
         '''
         t_this_sn = self.reverse_df.at[t_this_date, "sn"]
         t_next_sn = t_this_sn + t_shift
