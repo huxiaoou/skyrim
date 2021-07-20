@@ -60,7 +60,7 @@ class CNAV(object):
         if t_method == "linear":
             self.m_annual_return = self.m_rtn_srs.mean() * self.m_annual_factor
         else:
-            self.m_annual_return = np.power(self.m_hold_period_return / RETURN_SCALE + 1, self.m_annual_factor / len(self.m_rtn_srs))
+            self.m_annual_return = (np.power(self.m_hold_period_return / RETURN_SCALE + 1, self.m_annual_factor / len(self.m_rtn_srs)) - 1) * RETURN_SCALE
         return 0
 
     def cal_sharpe_ratio(self):
