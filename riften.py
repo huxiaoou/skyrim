@@ -25,7 +25,7 @@ class CNAV(object):
         :param t_freq: a string to indicate the frequency the series, must be one of ["D", "W", "M", "Q", "Y"]
         """
         self.m_nav_srs: pd.Series = t_raw_nav_srs / t_raw_nav_srs.iloc[0]  # set the first value to be 1
-        self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * RETURN_SCALE).fillna(0)
+        self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * RETURN_SCALE).fillna(0)  # has the same length as nav srs
         self.m_obs: int = len(t_raw_nav_srs)
 
         self.m_annual_factor: int = {
@@ -53,11 +53,14 @@ class CNAV(object):
         self.m_max_drawdown_recover_duration: str = {"natural": 0, "trade": 0}
 
     def cal_hold_period_return(self):
-        self.m_hold_period_return = (self.m_nav_srs.iloc[-1] / self.m_nav_srs.iloc[0] - 1) * 100
+        self.m_hold_period_return = (self.m_nav_srs.iloc[-1] / self.m_nav_srs.iloc[0] - 1) * RETURN_SCALE
         return 0
 
-    def cal_annual_return(self):
-        self.m_annual_return = self.m_rtn_srs.mean() * self.m_annual_factor
+    def cal_annual_return(self, t_method: str = "linear"):
+        if t_method == "linear":
+            self.m_annual_return = self.m_rtn_srs.mean() * self.m_annual_factor
+        else:
+            self.m_annual_return = np.power(self.m_hold_period_return / RETURN_SCALE + 1, self.m_annual_factor / len(self.m_rtn_srs))
         return 0
 
     def cal_sharpe_ratio(self):
@@ -80,7 +83,7 @@ class CNAV(object):
                 self.m_max_drawdown_date = trade_date
 
         prev_mdd_srs: pd.Series = self.m_nav_srs[self.m_nav_srs.index < self.m_max_drawdown_date]  # nav series before max drawdown date
-        this_mdd_srs: pd.Series = self.m_nav_srs[self.m_nav_srs.index >= self.m_max_drawdown_date] # nav series after max drawdown date
+        this_mdd_srs: pd.Series = self.m_nav_srs[self.m_nav_srs.index >= self.m_max_drawdown_date]  # nav series after max drawdown date
         self.m_max_drawdown_prev_high_date = prev_mdd_srs.idxmax()
         prev_high_value = prev_mdd_srs.max()
         re_break_idx = this_mdd_srs >= prev_high_value
