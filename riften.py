@@ -112,9 +112,9 @@ class CNAV(object):
             self.m_max_drawdown_recover_duration["natural"] = int((dt.datetime.strptime(_tail_date, "%Y%m%d") - dt.datetime.strptime(_head_date, "%Y%m%d")).days)
         return 0
 
-    def cal_all_indicators(self, t_calendar: CCalendar):
+    def cal_all_indicators(self, t_calendar: CCalendar, t_method: str = "linear"):
         self.cal_hold_period_return()
-        self.cal_annual_return()
+        self.cal_annual_return(t_method=t_method)
         self.cal_sharpe_ratio()
         self.cal_max_drawdown()
         self.cal_mdd_duration(t_calendar=t_calendar)
