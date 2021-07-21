@@ -6,7 +6,7 @@ import matplotlib.style
 from typing import List, Dict
 
 '''
-Added Dawnstar to project @ 2021-07-21
+Add Module Dawnstar with classes for trade and classes for portfolio to skyrim
 0.  this module provides some Classes to Equity simulation
 1.  the simulation is like Strategy Dragon and Tiger:
     A.  suppose signals are calculated after the close phase of day T-1, k securities are selected.
