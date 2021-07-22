@@ -120,7 +120,7 @@ class CNAV(object):
         self.cal_mdd_duration(t_calendar=t_calendar)
         return 0
 
-    def to_dict(self, t_type):
+    def to_dict(self, t_type: str):
         """
 
         :param t_type: "eng": pure English characters, "chs": chinese characters can be read by Latex
@@ -128,10 +128,10 @@ class CNAV(object):
         """
         if t_type == "eng":
             d = {
-                "hold_period_return": self.m_hold_period_return,
-                "annual_return": self.m_annual_return,
-                "sharpe_ratio": self.m_sharpe_ratio,
-                "max_drawdown": self.m_max_drawdown,
+                "hold_period_return": "{:.2f}".format(self.m_hold_period_return),
+                "annual_return": "{:.2f}".format(self.m_annual_return),
+                "sharpe_ratio": "{:.2f}".format(self.m_sharpe_ratio),
+                "max_drawdown": "{:.2f}".format(self.m_max_drawdown),
                 "prev_high_date": self.m_max_drawdown_prev_high_date,
                 "max_drawdown_date": self.m_max_drawdown_date,
                 "mdd_duration_t": self.m_max_drawdown_duration["trade"],
@@ -142,7 +142,7 @@ class CNAV(object):
             }
         elif t_type == "chs":
             d = {
-                "持有期收益": self.m_hold_period_return,
+                "持有期收益": "{:.2f}".format(self.m_hold_period_return),
                 "年化收益": "{:.2f}".format(self.m_annual_return),
                 "夏普比率": "{:.2f}".format(self.m_sharpe_ratio),
                 "最大回撤": "{:.2f}".format(self.m_max_drawdown),
