@@ -85,7 +85,7 @@ class CInstrumentInfoTable(object):
         return self.instrument_info_df.at[t_instrument_id, "exchangeId"]
 
     def get_exchangeId_chs(self, t_instrument_id:str):
-        exchange_id_eng = self.m_info_df.at[t_instrument_id, "exchangeId"]
+        exchange_id_eng = self.instrument_info_df.at[t_instrument_id, "exchangeId"]
         exchange_id_chs = {
             "DCE": "大商所",
             "CZCE": "郑商所",
