@@ -53,12 +53,15 @@ class CCalendar(object):
         '''
         t_shift : > 0, in the future; < 0, in the past
         '''
-        t_this_sn = self.reverse_df.at[t_this_date, "sn"]
-        t_next_sn = t_this_sn + t_shift
-        if t_next_sn >= len(self.calendar_df):
-            return ""
+        if t_this_date in self.reverse_df.index:
+            t_this_sn = self.reverse_df.at[t_this_date, "sn"]
+            t_next_sn = t_this_sn + t_shift
+            if t_next_sn >= len(self.calendar_df):
+                return ""
+            else:
+                return self.calendar_df.at[t_next_sn, "trade_date"]
         else:
-            return self.calendar_df.at[t_next_sn, "trade_date"]
+            return None
 
     def get_fix_gap_dates_list(self, t_bgn_date: str, t_fix_gap: int):
         t_bgn_sn = self.get_sn(t_base_date=t_bgn_date)
@@ -66,8 +69,11 @@ class CCalendar(object):
 
 
 class CInstrumentInfoTable(object):
-    def __init__(self, t_path: os.path, t_index_label):
-        self.instrument_info_df = pd.read_excel(t_path, sheet_name="InstrumentInfo").set_index(t_index_label)
+    def __init__(self, t_path: os.path, t_index_label:str, t_type:str ="Excel"):
+        if t_type == "Excel":
+            self.instrument_info_df = pd.read_excel(t_path, sheet_name="InstrumentInfo").set_index(t_index_label)
+        else:
+            self.instrument_info_df = pd.read_csv(t_path).set_index(t_index_label)
 
     def get_multiplier(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "contractMultiplier"]
@@ -78,5 +84,21 @@ class CInstrumentInfoTable(object):
     def get_exchangeId(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "exchangeId"]
 
+    def get_exchangeId_chs(self, t_instrument_id:str):
+        exchange_id_eng = self.m_info_df.at[t_instrument_id, "exchangeId"]
+        exchange_id_chs = {
+            "DCE": "大商所",
+            "CZCE": "郑商所",
+            "SHFE": "上期所",
+            "INE": "上海能源",
+        }[exchange_id_eng]
+        return exchange_id_chs
+
     def get_windCode(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "windCode"]
+
+    def get_ngt_sec_end_hour(self, t_instrument_id: str):
+        return self.instrument_info_df.at[t_instrument_id, "ngtSecEndHour"]
+
+    def get_ngt_sec_end_minute(self, t_instrument_id:str):
+        return self.instrument_info_df.at[t_instrument_id, "ngtSecEndMinute"]
