@@ -49,6 +49,17 @@ class CCalendar(object):
     def get_sn(self, t_base_date: str):
         return self.reverse_df.at[t_base_date, "sn"]
 
+    def get_sn_ineq(self, t_base_date: str, t_type: str):
+        if t_type == "<":
+            return self.reverse_df.loc[self.reverse_df.index < t_base_date, "sn"].iloc[-1]
+        if t_type == "<=":
+            return self.reverse_df.loc[self.reverse_df.index <= t_base_date, "sn"].iloc[-1]
+        if t_type == ">":
+            return self.reverse_df.loc[self.reverse_df.index > t_base_date, "sn"].iloc[0]
+        if t_type == ">=":
+            return self.reverse_df.loc[self.reverse_df.index >= t_base_date, "sn"].iloc[0]
+        return None
+
     def get_next_date(self, t_this_date: str, t_shift: int):
         '''
         t_shift : > 0, in the future; < 0, in the past
@@ -69,7 +80,7 @@ class CCalendar(object):
 
 
 class CInstrumentInfoTable(object):
-    def __init__(self, t_path: os.path, t_index_label:str, t_type:str ="Excel"):
+    def __init__(self, t_path: os.path, t_index_label: str, t_type: str = "Excel"):
         if t_type == "Excel":
             self.instrument_info_df = pd.read_excel(t_path, sheet_name="InstrumentInfo").set_index(t_index_label)
         else:
@@ -84,7 +95,7 @@ class CInstrumentInfoTable(object):
     def get_exchangeId(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "exchangeId"]
 
-    def get_exchangeId_chs(self, t_instrument_id:str):
+    def get_exchangeId_chs(self, t_instrument_id: str):
         exchange_id_eng = self.instrument_info_df.at[t_instrument_id, "exchangeId"]
         exchange_id_chs = {
             "DCE": "大商所",
@@ -100,5 +111,5 @@ class CInstrumentInfoTable(object):
     def get_ngt_sec_end_hour(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "ngtSecEndHour"]
 
-    def get_ngt_sec_end_minute(self, t_instrument_id:str):
+    def get_ngt_sec_end_minute(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "ngtSecEndMinute"]
