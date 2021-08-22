@@ -49,6 +49,9 @@ class CCalendar(object):
     def get_sn(self, t_base_date: str):
         return self.reverse_df.at[t_base_date, "sn"]
 
+    def get_date(self, t_sn:int):
+        return self.calendar_df.at[t_sn, "trade_date"]
+
     def get_sn_ineq(self, t_base_date: str, t_type: str):
         if t_type == "<":
             return self.reverse_df.loc[self.reverse_df.index < t_base_date, "sn"].iloc[-1]
