@@ -29,6 +29,7 @@ class CNAV(object):
         self.m_obs: int = len(t_raw_nav_srs)
 
         self.m_annual_factor: int = {
+            "S": 504,
             "D": 252,
             "W": 52,
             "M": 12,
