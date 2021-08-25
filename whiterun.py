@@ -49,7 +49,7 @@ class CCalendar(object):
     def get_sn(self, t_base_date: str):
         return self.reverse_df.at[t_base_date, "sn"]
 
-    def get_date(self, t_sn:int):
+    def get_date(self, t_sn: int):
         return self.calendar_df.at[t_sn, "trade_date"]
 
     def get_sn_ineq(self, t_base_date: str, t_type: str):
@@ -80,6 +80,24 @@ class CCalendar(object):
     def get_fix_gap_dates_list(self, t_bgn_date: str, t_fix_gap: int):
         t_bgn_sn = self.get_sn(t_base_date=t_bgn_date)
         return self.calendar_df["trade_date"].iloc[t_bgn_sn::t_fix_gap].tolist()
+
+
+class CInstrumentCalendar(object):
+    def __init__(self, t_instrument_id: str, t_calendar_dir: str):
+        instru_calendar_file = "trade_calendar.{}.csv".format(t_instrument_id)
+        instru_calendar_path = os.path.join(t_calendar_dir, instru_calendar_file)
+        self.m_instru_calendar_df: pd.DataFrame = pd.read_csv(instru_calendar_path, dtype={"trade_date": str})
+
+    def get_iter_list(self, t_bgn_date: str, t_stp_date: str):
+        _iter_list = []
+        for trade_date, section, contract in zip(
+                self.m_instru_calendar_df["trade_date"],
+                self.m_instru_calendar_df["section"],
+                self.m_instru_calendar_df["trade_contract_id"],
+        ):
+            if t_bgn_date <= trade_date < t_stp_date:
+                _iter_list.append((trade_date, section, contract))
+        return _iter_list
 
 
 class CInstrumentInfoTable(object):
