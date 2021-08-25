@@ -41,6 +41,8 @@ class CNAV(object):
 
         # frequently used performance index
         # primary
+        self.m_return_mean: float = 0
+        self.m_return_std: float = 0
         self.m_hold_period_return: float = 0
         self.m_annual_return: float = 0
         self.m_sharpe_ratio: float = 0
@@ -52,6 +54,14 @@ class CNAV(object):
         self.m_max_drawdown_re_break_date: str = ""
         self.m_max_drawdown_duration: str = {"natural": 0, "trade": 0}
         self.m_max_drawdown_recover_duration: str = {"natural": 0, "trade": 0}
+
+    def cal_return_mean(self):
+        self.m_return_mean = self.m_rtn_srs.mean()
+        return 0
+
+    def cal_return_std(self):
+        self.m_return_std = self.m_rtn_srs.std()
+        return 0
 
     def cal_hold_period_return(self):
         self.m_hold_period_return = (self.m_nav_srs.iloc[-1] / self.m_nav_srs.iloc[0] - 1) * RETURN_SCALE
@@ -114,6 +124,8 @@ class CNAV(object):
         return 0
 
     def cal_all_indicators(self, t_calendar: CCalendar, t_method: str = "linear"):
+        self.cal_return_mean()
+        self.cal_return_std()
         self.cal_hold_period_return()
         self.cal_annual_return(t_method=t_method)
         self.cal_sharpe_ratio()
@@ -129,6 +141,8 @@ class CNAV(object):
         """
         if t_type == "eng":
             d = {
+                "return_mean": "{:.2f}".format(self.m_return_mean),
+                "return_std": "{:.2f}".format(self.m_return_std),
                 "hold_period_return": "{:.2f}".format(self.m_hold_period_return),
                 "annual_return": "{:.2f}".format(self.m_annual_return),
                 "sharpe_ratio": "{:.2f}".format(self.m_sharpe_ratio),
@@ -143,6 +157,8 @@ class CNAV(object):
             }
         elif t_type == "chs":
             d = {
+                "收益率平均": "{:.2f}".format(self.m_return_mean),
+                "收益率波动": "{:.2f}".format(self.m_return_std),
                 "持有期收益": "{:.2f}".format(self.m_hold_period_return),
                 "年化收益": "{:.2f}".format(self.m_annual_return),
                 "夏普比率": "{:.2f}".format(self.m_sharpe_ratio),
