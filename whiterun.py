@@ -134,3 +134,28 @@ class CInstrumentInfoTable(object):
 
     def get_ngt_sec_end_minute(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "ngtSecEndMinute"]
+
+    def get_cost_rate_float(self, t_instrument_id: str):
+        return self.instrument_info_df.at[t_instrument_id, "cost_float"]
+
+    def get_cost_rate_fix(self, t_instrument_id: str):
+        return self.instrument_info_df.at[t_instrument_id, "cost_fix"]
+
+    def is_close_today_free(self, t_instrument_id: str) -> bool:
+        return self.instrument_info_df.at[t_instrument_id, "isCloseTodayFree"] > 0
+
+    def cal_abs_pnl(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float):
+        _contract_multiplier = self.get_multiplier(t_instrument_id=t_instrument_id)
+        return (t_close_price - t_open_price) * _contract_multiplier * t_qty
+
+    def clearing_cost(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float):
+        _contract_multiplier = self.get_multiplier(t_instrument_id=t_instrument_id)
+        _rate_float = self.get_cost_rate_float(t_instrument_id=t_instrument_id)
+        _rate_fix = self.get_cost_rate_fix(t_instrument_id=t_instrument_id)
+        if self.is_close_today_free(t_instrument_id=t_instrument_id):
+            _cost_float = (t_open_price + t_close_price) / 2 * _contract_multiplier * t_qty * _rate_float
+            _cost_fix = _rate_fix
+        else:
+            _cost_float = (t_open_price + t_close_price) * _contract_multiplier * t_qty * _rate_float
+            _cost_fix = _rate_fix * 2
+        return _cost_float + _cost_fix
