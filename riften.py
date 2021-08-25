@@ -22,7 +22,7 @@ class CNAV(object):
                           when initialzied.
         :param t_annual_rf_rate: annualized risk free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
-        :param t_freq: a string to indicate the frequency the series, must be one of ["D", "W", "M", "Q", "Y"]
+        :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
         """
         self.m_nav_srs: pd.Series = t_raw_nav_srs / t_raw_nav_srs.iloc[0]  # set the first value to be 1
         self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * RETURN_SCALE).fillna(0)  # has the same length as nav srs
