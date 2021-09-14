@@ -1,4 +1,3 @@
-import os
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -19,7 +18,7 @@ class CNAV(object):
 
         :param t_raw_nav_srs: the Net-Assets-Value series, with datetime-like index in string format.
                           The first item in this series can not be ONE, and the class will do the conversion
-                          when initialzied.
+                          when initialized.
         :param t_annual_rf_rate: annualized risk free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
         :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
@@ -52,8 +51,8 @@ class CNAV(object):
         # secondary
         self.m_max_drawdown_prev_high_date: str = ""
         self.m_max_drawdown_re_break_date: str = ""
-        self.m_max_drawdown_duration: str = {"natural": 0, "trade": 0}
-        self.m_max_drawdown_recover_duration: str = {"natural": 0, "trade": 0}
+        self.m_max_drawdown_duration: dict = {"natural": 0, "trade": 0}
+        self.m_max_drawdown_recover_duration: dict = {"natural": 0, "trade": 0}
 
     def cal_return_mean(self):
         self.m_return_mean = self.m_rtn_srs.mean()

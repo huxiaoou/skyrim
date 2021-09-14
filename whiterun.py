@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 import re
 
@@ -152,14 +151,14 @@ class CInstrumentInfoTable(object):
         _contract_multiplier = self.get_multiplier(t_instrument_id=t_instrument_id)
         return (t_close_price - t_open_price) * _contract_multiplier * t_qty
 
-    def clearing_cost(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float, t_adjut_rate: float):
+    def clearing_cost(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float, t_adjust_rate: float):
         """
 
         :param t_instrument_id:
         :param t_qty:
         :param t_open_price:
         :param t_close_price:
-        :param t_adjut_rate: the ratio of real cost to base cost (charged by SHFE, DCE, CZCE), 1 means equal.
+        :param t_adjust_rate: the ratio of real cost to base cost (charged by SHFE, DCE, CZCE), 1 means equal.
                              real cost = t_adjust_rate * base cost
         :return:
         """
@@ -172,4 +171,4 @@ class CInstrumentInfoTable(object):
         else:
             _cost_float = (t_open_price + t_close_price) * _contract_multiplier * t_qty * _rate_float
             _cost_fix = _rate_fix * 2
-        return (_cost_float + _cost_fix) * t_adjut_rate
+        return (_cost_float + _cost_fix) * t_adjust_rate

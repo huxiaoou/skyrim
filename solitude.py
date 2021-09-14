@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 """
-0.  this module is designed to load tick data recored by myself
+0.  this module is designed to load tick data recorded by myself
 1.  tick data are supposed to be saved by section
 """
 

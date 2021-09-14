@@ -12,8 +12,8 @@ Add Module Dawnstar with classes for trade and classes for portfolio to skyrim
     A.  suppose signals are calculated after the close phase of day T-1, k securities are selected.
     B.  k securities are bought(open position) at open price of day T, if rise stop condition of this security is not met,
         otherwise the strategy will abandon this opportunity.
-        And the sum of their market cap should be about 1/h of total accout value, which means 1/kh of the total accout value
-        is allcoated for each of this k security.
+        And the sum of their market cap should be about 1/h of total account value, which means 1/kh of the total account value
+        is allocated for each of this k security.
     C.  the k securities are sold(close position) at close price of day T+h, if fall stop condition of this security is not met, 
         otherwise try to sell this security at next day close price.
     D.  Mirror operations are allowed.

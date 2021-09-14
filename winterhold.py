@@ -2,6 +2,7 @@ import os
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.style
+import numpy as np
 import pandas as pd
 
 matplotlib.style.use("Solarize_Light2")
