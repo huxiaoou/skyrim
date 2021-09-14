@@ -56,8 +56,8 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_line
     :param t_fig_name: the name of the file to save the figure
     :param t_save_dir: the directory where the file is saved
     :param t_line_width: line width
-    :param t_colormap: colomap to be used to change the line color, frequently used values are:
-                       ["jet", "Paired", "RdBu", "spring", "summer", "autumen", "winter"]
+    :param t_colormap: colormap to be used to change the line color, frequently used values are:
+                       ["jet", "Paired", "RdBu", "spring", "summer", "autumn", "winter"]
     :param t_xtick_count: the number of ticks to be labeled on x-axis
     :param t_xlabel: the labels to be print on xticks
     :param t_legend_loc: the location of legend, frequently used values are:

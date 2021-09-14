@@ -67,9 +67,13 @@ class CCalendar(object):
         return None
 
     def get_next_date(self, t_this_date: str, t_shift: int):
-        '''
-        t_shift : > 0, in the future; < 0, in the past
-        '''
+        """
+
+        :param t_this_date:
+        :param t_shift: t_shift : > 0, in the future; < 0, in the past
+        :return:
+        """
+
         if t_this_date in self.reverse_df.index:
             t_this_sn = self.reverse_df.at[t_this_date, "sn"]
             t_next_sn = t_this_sn + t_shift
