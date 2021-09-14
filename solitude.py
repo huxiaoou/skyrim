@@ -2,6 +2,11 @@ import os
 import numpy as np
 import pandas as pd
 
+"""
+0.  this module is designed to load tick data recored by myself
+1.  tick data are supposed to be saved by section
+"""
+
 NEW_FORMAT_BEGIN_DATE = "20190101"
 
 OLD_CTP_FORMAT = [
