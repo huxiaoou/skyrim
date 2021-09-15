@@ -47,7 +47,7 @@ def date_format_converter_10_to_08(t_date: str):
     return t_date.replace("-", "")
 
 
-def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_line_width: float = 2, t_colormap: Union[None, str] = None,
+def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2, t_colormap: Union[None, str] = None,
                t_xtick_count: int = 10, t_xlabel: str = "", t_legend_loc="upper left", t_tick_label_size: int = 12,
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
