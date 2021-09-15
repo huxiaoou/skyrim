@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.style
 import numpy as np
 import pandas as pd
+from typing import Union
 
 matplotlib.style.use("Solarize_Light2")
 
@@ -46,7 +47,7 @@ def date_format_converter_10_to_08(t_date: str):
     return t_date.replace("-", "")
 
 
-def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_line_width: float = 2, t_colormap: str = "Paired",
+def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_line_width: float = 2, t_colormap: Union[None, str] = None,
                t_xtick_count: int = 10, t_xlabel: str = "", t_legend_loc="upper left", t_tick_label_size: int = 12,
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
@@ -56,7 +57,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_line
     :param t_fig_name: the name of the file to save the figure
     :param t_save_dir: the directory where the file is saved
     :param t_line_width: line width
-    :param t_colormap: colormap to be used to change the line color, frequently used values are:
+    :param t_colormap: colormap to be used to change the line color, default is None, frequently used values are:
                        ["jet", "Paired", "RdBu", "spring", "summer", "autumn", "winter"]
     :param t_xtick_count: the number of ticks to be labeled on x-axis
     :param t_xlabel: the labels to be print on xticks
