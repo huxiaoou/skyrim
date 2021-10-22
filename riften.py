@@ -127,6 +127,8 @@ class CNAV(object):
         self.cal_annual_return(t_method=t_method)
         self.cal_sharpe_ratio()
         self.cal_max_drawdown_scale()
+        self.cal_max_drawdown_duration()
+        self.cal_max_recover_duration()
         return 0
 
     def to_dict(self, t_type: str):
