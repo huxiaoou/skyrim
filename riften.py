@@ -16,9 +16,11 @@ class CNAV(object):
     def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str):
         """
 
-        :param t_raw_nav_srs: the Net-Assets-Value series, with datetime-like index in string format.
-                          The first item in this series can not be ONE, and the class will do the conversion
-                          when initialized.
+        :param t_raw_nav_srs: A. the Net-Assets-Value series, with datetime-like index in string format.
+                                 The first item in this series can not be ONE, and the class will do the conversion
+                                 when initialized.
+                              B. the index of the series is supposed to be continuous, i.e., there are not any missing
+                                 dates or timestamp in the index.
         :param t_annual_rf_rate: annualized risk free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
         :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
