@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import datetime as dt
-from skyrim.whiterun import CCalendar
 
 '''
 created @ 2021-02-22
@@ -101,7 +99,7 @@ class CNAV(object):
         prev_drawdown_scale = 0.0
         drawdown_loc = 0
         for i, nav_i in enumerate(self.m_nav_srs):
-            if nav_i >= prev_high:
+            if nav_i > prev_high:
                 prev_high = nav_i
                 prev_high_loc = i
                 prev_drawdown_scale = 0
@@ -118,7 +116,7 @@ class CNAV(object):
         prev_high = self.m_nav_srs.iloc[0]
         prev_high_loc = 0
         for i, nav_i in enumerate(self.m_nav_srs):
-            if nav_i >= prev_high:
+            if nav_i > prev_high:
                 self.m_recover_duration_srs.iloc[i] = 0
                 prev_high = nav_i
                 prev_high_loc = i
@@ -185,56 +183,3 @@ class CNAV(object):
             self.m_sharpe_ratio,
         ))
         return 0
-
-# class CNAVEnhanced(CNAV):
-#     def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str):
-#         super().__init__(t_raw_nav_srs, t_annual_rf_rate, t_freq)
-#
-#         self.m_max_drawdown_scale_date: str = self.m_nav_srs.index[0]
-#         self.m_max_drawdown_scale_prev_high_date: str = ""
-#         self.m_max_drawdown_scale_re_break_date: str = ""
-#         self.m_max_drawdown_scale_duration: dict = {"natural": 0, "trade": 0}
-#         self.m_max_drawdown_scale_recover_duration: dict = {"natural": 0, "trade": 0}
-#
-#     def cal_mdd_duration(self, t_calendar: CCalendar):
-#         # mdd duration
-#         _head_date = self.m_max_drawdown_scale_prev_high_date
-#         _tail_date = self.m_max_drawdown_scale_date
-#         self.m_max_drawdown_scale_duration["trade"] = int(t_calendar.get_sn(_tail_date) - t_calendar.get_sn(_head_date))
-#         self.m_max_drawdown_scale_duration["natural"] = int((dt.datetime.strptime(_tail_date, "%Y%m%d") - dt.datetime.strptime(_head_date, "%Y%m%d")).days)
-#
-#         # recover duration
-#         # days before the nav is beyond the prev high since the mdd happens
-#         if self.m_max_drawdown_scale_re_break_date == "--":
-#             self.m_max_drawdown_scale_recover_duration["trade"] = "--"
-#             self.m_max_drawdown_scale_recover_duration["natural"] = "--"
-#         else:
-#             _head_date = self.m_max_drawdown_scale_date
-#             _tail_date = self.m_max_drawdown_scale_re_break_date
-#             self.m_max_drawdown_scale_recover_duration["trade"] = int(t_calendar.get_sn(_tail_date) - t_calendar.get_sn(_head_date))
-#             self.m_max_drawdown_scale_recover_duration["natural"] = int((dt.datetime.strptime(_tail_date, "%Y%m%d") - dt.datetime.strptime(_head_date, "%Y%m%d")).days)
-#         return 0
-#
-#     def to_dict(self, t_type: str):
-#         d = super().to_dict(t_type)
-#         if t_type == "eng":
-#             d.update({
-#                 "prev_high_date": self.m_max_drawdown_scale_prev_high_date,
-#                 "max_drawdown_date": self.m_max_drawdown_scale_date,
-#                 "mdd_duration_t": self.m_max_drawdown_scale_duration["trade"],
-#                 "mdd_duration_n": self.m_max_drawdown_scale_duration["natural"],
-#                 "re_break_date": self.m_max_drawdown_scale_re_break_date,
-#                 "recover_duration_t": self.m_max_drawdown_scale_recover_duration["trade"],
-#                 "recover_duration_n": self.m_max_drawdown_scale_recover_duration["natural"],
-#             })
-#         elif t_type == "chs":
-#             d.update({
-#                 "最大回撤开始日期": self.m_max_drawdown_scale_prev_high_date,
-#                 "最大回撤持续时间": self.m_max_drawdown_scale_duration["trade"],
-#                 "最大回撤结束日期": self.m_max_drawdown_scale_date,
-#                 "恢复前高时间": self.m_max_drawdown_scale_recover_duration["trade"],
-#                 "恢复前高日期": self.m_max_drawdown_scale_re_break_date,
-#             })
-#         else:
-#             pass
-#         return d
