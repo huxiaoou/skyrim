@@ -50,14 +50,17 @@ class CNAV(object):
 
         # secondary - A max drawdown scale
         self.m_max_drawdown_scale: float = 0  # a non negative float, multiplied by RETURN_SCALE
+        self.m_max_drawdown_scale_idx: str = ""
         self.m_drawdown_scale_srs: pd.Series = pd.Series(data=0.0, index=self.m_nav_srs.index)
 
         # secondary - B max drawdown duration
         self.m_max_drawdown_duration: int = 0  # a non negative int, stands for the duration of drawdown
+        self.m_max_drawdown_duration_idx: str = ""
         self.m_drawdown_duration_srs: pd.Series = pd.Series(data=0, index=self.m_nav_srs.index)
 
         # secondary - C max recover duration
         self.m_max_recover_duration: int = 0
+        self.m_max_recover_duration_idx: str = ""
         self.m_recover_duration_srs: pd.Series = pd.Series(data=0, index=self.m_nav_srs.index)
 
     def cal_return_mean(self):
@@ -87,8 +90,9 @@ class CNAV(object):
         return 0
 
     def cal_max_drawdown_scale(self):
-        self.m_drawdown_scale_srs = 1 - self.m_nav_srs / self.m_nav_srs.cummax()
+        self.m_drawdown_scale_srs: pd.Series = (1 - self.m_nav_srs / self.m_nav_srs.cummax()) * RETURN_SCALE
         self.m_max_drawdown_scale = self.m_drawdown_scale_srs.max()
+        self.m_max_drawdown_scale_idx = self.m_drawdown_scale_srs.idxmax()
         return 0
 
     def cal_max_drawdown_duration(self):
@@ -107,6 +111,7 @@ class CNAV(object):
                 drawdown_loc = i
             self.m_drawdown_duration_srs.iloc[i] = drawdown_loc - prev_high_loc
         self.m_max_drawdown_duration = self.m_drawdown_duration_srs.max()
+        self.m_max_drawdown_duration_idx = self.m_drawdown_duration_srs.idxmax()
         return 0
 
     def cal_max_recover_duration(self):
@@ -120,6 +125,7 @@ class CNAV(object):
             else:
                 self.m_recover_duration_srs.iloc[i] = i - prev_high_loc
         self.m_max_recover_duration = self.m_recover_duration_srs.max()
+        self.m_max_recover_duration_idx = self.m_recover_duration_srs.idxmax()
         return
 
     def cal_all_indicators(self, t_method: str = "linear"):
@@ -147,8 +153,11 @@ class CNAV(object):
                 "annual_return": "{:.2f}".format(self.m_annual_return),
                 "sharpe_ratio": "{:.2f}".format(self.m_sharpe_ratio),
                 "max_drawdown_scale": "{:.2f}".format(self.m_max_drawdown_scale),
+                "max_drawdown_scale_idx": "{:s}".format(self.m_max_drawdown_scale_idx),
                 "max_drawdown_duration": "{:d}".format(self.m_max_drawdown_duration),
+                "max_drawdown_duration_idx": "{:s}".format(self.m_max_drawdown_duration_idx),
                 "max_recover_duration": "{:d}".format(self.m_max_recover_duration),
+                "max_recover_duration_idx": "{:s}".format(self.m_max_recover_duration_idx),
             }
         elif t_type == "chs":
             d = {
@@ -158,8 +167,11 @@ class CNAV(object):
                 "年化收益": "{:.2f}".format(self.m_annual_return),
                 "夏普比率": "{:.2f}".format(self.m_sharpe_ratio),
                 "最大回撤": "{:.2f}".format(self.m_max_drawdown_scale),
+                "最大回撤时点": "{:s}".format(self.m_max_drawdown_scale_idx),
                 "最长回撤期": "{:d}".format(self.m_max_drawdown_duration),
+                "最长回撤期时点": "{:s}".format(self.m_max_drawdown_duration_idx),
                 "最长恢复期": "{:d}".format(self.m_max_recover_duration),
+                "最长恢复期时点": "{:s}".format(self.m_max_recover_duration_idx),
             }
         else:
             d = {}
@@ -173,7 +185,6 @@ class CNAV(object):
             self.m_sharpe_ratio,
         ))
         return 0
-
 
 # class CNAVEnhanced(CNAV):
 #     def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str):
