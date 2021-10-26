@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from typing import Union
 
+matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
 matplotlib.style.use("Solarize_Light2")
 
 
