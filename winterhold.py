@@ -1,9 +1,10 @@
 import os
+import numpy as np
+import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.style
-import numpy as np
-import pandas as pd
+import seaborn as sns
 from typing import Union
 
 matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
@@ -82,6 +83,17 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     ax0.legend(loc=t_legend_loc)
     ax0.tick_params(axis="both", labelsize=t_tick_label_size)
     ax0.set_title(t_ax_title)
+    fig0_name = t_fig_name + "." + t_save_type
+    fig0_path = os.path.join(t_save_dir, fig0_name)
+    fig0.savefig(fig0_path, bbox_inches="tight")
+    plt.close(fig0)
+    return 0
+
+
+def plot_corr(t_corr_df: pd.DataFrame, t_annot_size: int, t_fig_name: str, t_save_dir: str, t_save_type: str = "pdf"):
+    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    sns.heatmap(t_corr_df, cmap="Blues", annot=True, annot_kws={"size": t_annot_size})
+    ax0.tick_params(axis="y", rotation=0)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
     fig0.savefig(fig0_path, bbox_inches="tight")
