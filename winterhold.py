@@ -90,9 +90,9 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     return 0
 
 
-def plot_corr(t_corr_df: pd.DataFrame, t_annot_size: int, t_fig_name: str, t_save_dir: str, t_save_type: str = "pdf"):
+def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str, t_save_type: str = "pdf", t_annot_size: int = 8, t_annot_format: str = ".2f"):
     fig0, ax0 = plt.subplots(figsize=(16, 9))
-    sns.heatmap(t_corr_df, cmap="Blues", annot=True, annot_kws={"size": t_annot_size})
+    sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
     ax0.tick_params(axis="y", rotation=0)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
