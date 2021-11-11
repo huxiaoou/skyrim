@@ -49,7 +49,8 @@ def date_format_converter_10_to_08(t_date: str):
     return t_date.replace("-", "")
 
 
-def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2, t_colormap: Union[None, str] = None,
+def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2,
+               t_colormap: Union[None, str] = None,
                t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left", t_tick_label_size: int = 12,
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
@@ -90,10 +91,34 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     return 0
 
 
-def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_save_type: str = "pdf", t_annot_size: int = 8, t_annot_format: str = ".2f"):
+def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+              t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf"):
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
     ax0.tick_params(axis="y", rotation=0)
+    fig0_name = t_fig_name + "." + t_save_type
+    fig0_path = os.path.join(t_save_dir, fig0_name)
+    fig0.savefig(fig0_path, bbox_inches="tight")
+    plt.close(fig0)
+    return 0
+
+
+def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+                t_colormap: Union[None, str] = "jet",
+                t_xtick_count: int = 16, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left", t_tick_label_size: int = 12,
+                t_ax_title: str = "", t_save_type: str = "pdf"):
+    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    t_weight_df.plot(ax=ax0, kind="bar", stacked=True, colormap=t_colormap)
+    n_ticks = len(t_weight_df)
+    xticks = np.arange(0, n_ticks, int(n_ticks / t_xtick_count))
+    xticklabels = t_weight_df.index[xticks]
+    ax0.set_xticks(xticks)
+    ax0.set_xticklabels(xticklabels)
+    ax0.set_xlabel(t_xlabel)
+    ax0.set_ylim(t_ylim)
+    ax0.legend(loc=t_legend_loc)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size)
+    ax0.set_title(t_ax_title)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
     fig0.savefig(fig0_path, bbox_inches="tight")
