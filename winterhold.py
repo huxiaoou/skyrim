@@ -51,7 +51,8 @@ def date_format_converter_10_to_08(t_date: str):
 
 def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2,
                t_colormap: Union[None, str] = None,
-               t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left", t_tick_label_size: int = 12,
+               t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
+               t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
     """
@@ -68,6 +69,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     :param t_legend_loc: the location of legend, frequently used values are:
                          ["best", "upper left", "upper right"]
     :param t_tick_label_size: the size of the tick labels
+    :param t_tick_label_rotation: the rotation of the tick labels, 0 = norm, 90 = fonts are rotated 90 degree counter-clockwisely
     :param t_ax_title: the title of the ax
     :param t_save_type: the type of file, frequently used values are:
                         ["pdf", "jpg"]
@@ -82,7 +84,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     ax0.set_xlabel(t_xlabel)
     ax0.set_ylim(t_ylim)
     ax0.legend(loc=t_legend_loc)
-    ax0.tick_params(axis="both", labelsize=t_tick_label_size)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
     ax0.set_title(t_ax_title)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
@@ -95,7 +97,7 @@ def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
               t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf"):
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
-    ax0.tick_params(axis="y", rotation=0)
+    ax0.tick_params(axis="y", rotation=t_tick_label_rotation)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
     fig0.savefig(fig0_path, bbox_inches="tight")
@@ -105,10 +107,11 @@ def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
 
 def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
                 t_colormap: Union[None, str] = "jet",
-                t_xtick_count: int = 16, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left", t_tick_label_size: int = 12,
+                t_xtick_count: int = 16, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
+                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                 t_ax_title: str = "", t_save_type: str = "pdf"):
     fig0, ax0 = plt.subplots(figsize=(16, 9))
-    t_weight_df.plot(ax=ax0, kind="bar", stacked=True, colormap=t_colormap)
+    t_weight_df.plot(ax=ax0, kind="bar", stacked=True, colormap=t_colormap)  # core: stacked bar
     n_ticks = len(t_weight_df)
     xticks = np.arange(0, n_ticks, int(n_ticks / t_xtick_count))
     xticklabels = t_weight_df.index[xticks]
@@ -117,7 +120,42 @@ def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".
     ax0.set_xlabel(t_xlabel)
     ax0.set_ylim(t_ylim)
     ax0.legend(loc=t_legend_loc)
-    ax0.tick_params(axis="both", labelsize=t_tick_label_size)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
+    ax0.set_title(t_ax_title)
+    fig0_name = t_fig_name + "." + t_save_type
+    fig0_path = os.path.join(t_save_dir, fig0_name)
+    fig0.savefig(fig0_path, bbox_inches="tight")
+    plt.close(fig0)
+    return 0
+
+
+def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+             t_colormap: Union[None, str] = "jet",
+             t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
+             t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
+             t_ax_title: str = "", t_save_type: str = "pdf"):
+    """
+
+    :param t_bar_df: if not transposed, each row(obs) of t_bar_df means a tick in the x-axis,
+                     and a cluster the columns(variables) of the row are plot at the tick.
+    :param t_fig_name:
+    :param t_save_dir:
+    :param t_colormap:
+    :param t_xlabel:
+    :param t_ylim:
+    :param t_legend_loc:
+    :param t_tick_label_size:
+    :param t_tick_label_rotation:
+    :param t_ax_title:
+    :param t_save_type:
+    :return:
+    """
+    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    t_bar_df.plot(ax=ax0, kind="bar", colormap=t_colormap)  # not stacked bar, best designged for small obs, i.e., all the row labels can be plot
+    ax0.set_xlabel(t_xlabel)
+    ax0.set_ylim(t_ylim)
+    ax0.legend(loc=t_legend_loc)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
     ax0.set_title(t_ax_title)
     fig0_name = t_fig_name + "." + t_save_type
     fig0_path = os.path.join(t_save_dir, fig0_name)
