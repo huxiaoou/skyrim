@@ -23,12 +23,11 @@ pd.set_option("display.width", 0)
 matplotlib.style.use("Solarize_Light2")
 
 RETURN_SCALE = 100
-STOP_RETURN = 9.95
 BASE_SHARES = 100
 
 
 class CTradeBase(object):
-    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float):
+    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float, t_stop_return: float = 9.95):
         self.m_sid: str = t_sid
         md_file = "{}.md.csv.gz".format(t_sid)
         md_path = os.path.join(t_md_dir, md_file)
@@ -54,6 +53,8 @@ class CTradeBase(object):
         self.m_realized_pnl: float = 0
         self.m_cost_rate: float = t_cost_rate
 
+        self.m_stop_return: float = t_stop_return
+
     def initialize_at_beginning_of_each_day(self):
         self.m_unrealized_pnl = 0
         return 0
@@ -61,9 +62,9 @@ class CTradeBase(object):
     def open(self, t_open_date: str, t_allocated_amt: float, t_direction: int, t_prev_date: str) -> bool:
         prev_close = self.m_md.at[t_prev_date, "close"]
         this_open = self.m_md.at[t_open_date, "open"]
-        if (this_open > prev_close * (1 + STOP_RETURN / RETURN_SCALE)) and (t_direction > 0):
+        if (this_open > prev_close * (1 + self.m_stop_return / RETURN_SCALE)) and (t_direction > 0):
             return False
-        elif (this_open < prev_close * (1 - STOP_RETURN / RETURN_SCALE)) and (t_direction < 0):
+        elif (this_open < prev_close * (1 - self.m_stop_return / RETURN_SCALE)) and (t_direction < 0):
             return False
         else:
             self.m_quantity = BASE_SHARES * int(t_allocated_amt / this_open / BASE_SHARES / (1 + self.m_cost_rate))
@@ -97,12 +98,12 @@ class CTradeBase(object):
     def close(self) -> bool:
         pct_chg = self.m_md.at[self.m_update_date, "pct_chg"]
         if self.check_close_condition():
-            if (self.m_direction > 0) and (pct_chg >= -STOP_RETURN):
+            if (self.m_direction > 0) and (pct_chg >= -self.m_stop_return):
                 self.m_close_price = self.m_update_price
                 self.m_realized_pnl = self.m_unrealized_pnl
                 self.m_unrealized_pnl = 0
                 return True
-            if (self.m_direction < 0) and (pct_chg < STOP_RETURN):
+            if (self.m_direction < 0) and (pct_chg < self.m_stop_return):
                 self.m_close_price = self.m_update_price
                 self.m_realized_pnl = self.m_unrealized_pnl
                 self.m_unrealized_pnl = 0
