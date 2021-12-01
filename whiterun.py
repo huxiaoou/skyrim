@@ -108,13 +108,13 @@ class CInstrumentCalendar(object):
 
 
 class CInstrumentInfoTable(object):
-    def __init__(self, t_path: os.path, t_sheet_name: str = "InstrumentInfo", t_index_label: str = "instrumentId", t_type: str = "EXCEL"):
+    def __init__(self, t_path: os.path, t_index_label: str = "instrumentId", t_type: str = "EXCEL", t_sheet_name: str = "InstrumentInfo"):
         """
 
         :param t_path: InstrumentInfo file path, could be a txt(csv) or xlsx
-        :param t_sheet_name: "InstrumentInfo"
         :param t_index_label: "instrumentId" or "windCode"
         :param t_type: "Excel" for xlsx, others for txt(csv)
+        :param t_sheet_name: "InstrumentInfo", if t_type = "EXCEL"
         """
         if t_type.upper() == "EXCEL":
             self.instrument_info_df = pd.read_excel(t_path, sheet_name=t_sheet_name).set_index(t_index_label)
