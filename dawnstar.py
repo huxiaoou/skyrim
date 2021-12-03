@@ -54,6 +54,7 @@ class CTradeBase(object):
         self.m_cost_rate: float = t_cost_rate
 
         self.m_stop_return: float = t_stop_return
+        self.m_md_end_date:str = self.m_md.index[-1]
 
     def initialize_at_beginning_of_each_day(self):
         self.m_unrealized_pnl = 0
@@ -140,8 +141,11 @@ class CTradeL1(CTradeBase):
         super().__init__(t_sid, t_md_dir, t_cost_rate)
         self.m_last_hold_date: str = ""
 
-    def set_close_condition(self, t_last_hold_date: str):
-        self.m_last_hold_date = t_last_hold_date
+    def set_close_condition(self, t_last_hold_date: str, t_simu_end_date:str):
+        if self.m_md_end_date < t_simu_end_date:
+            self.m_last_hold_date = min(self.m_md_end_date, t_last_hold_date)
+        else:
+            self.m_last_hold_date = t_last_hold_date
         return 0
 
     def check_close_condition(self) -> bool:
@@ -181,7 +185,8 @@ class CTradeL2(CTradeL1):
 
 
 class CPortfolio(object):
-    def __init__(self, t_pid: str, t_groups_n: int, t_init_cash: float, t_cost_rate: float, t_md_dir: str, t_signal_dir: str, t_save_dir: str, t_verbose: bool):
+    def __init__(self, t_pid: str, t_groups_n: int, t_init_cash: float, t_cost_rate: float,
+                 t_md_dir: str, t_signal_dir: str, t_save_dir: str, t_simu_end_date: str, t_verbose: bool):
         self.m_pid: str = t_pid
         self.m_max_groups_n: int = t_groups_n
         self.m_available_groups_n: int = t_groups_n
@@ -213,6 +218,7 @@ class CPortfolio(object):
         self.m_nav_data_list = []
         self.m_summary_df = None
 
+        self.m_simu_end_date: str = t_simu_end_date
         self.m_verbose: bool = t_verbose
 
     def initialize(self, t_update_date: str, t_signal_date: str):
@@ -256,7 +262,7 @@ class CPortfolio(object):
                         t_direction=t_direction,
                         t_prev_date=self.m_signal_date,
                 ):
-                    new_trade.set_close_condition(t_last_hold_date=t_last_hold_date)
+                    new_trade.set_close_condition(t_last_hold_date=t_last_hold_date, t_simu_end_date=self.m_simu_end_date)
                     self.m_active_trades_manager[self.m_tid] = new_trade
                     cost, cash_locked = new_trade.get_cash_locked()
                     self.m_active_trades_n += 1
