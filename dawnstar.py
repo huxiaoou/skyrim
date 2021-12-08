@@ -54,7 +54,7 @@ class CTradeBase(object):
         self.m_cost_rate: float = t_cost_rate
 
         self.m_stop_return: float = t_stop_return
-        self.m_md_end_date:str = self.m_md.index[-1]
+        self.m_md_end_date: str = self.m_md.index[-1]
 
     def initialize_at_beginning_of_each_day(self):
         self.m_unrealized_pnl = 0
@@ -141,7 +141,7 @@ class CTradeL1(CTradeBase):
         super().__init__(t_sid, t_md_dir, t_cost_rate)
         self.m_last_hold_date: str = ""
 
-    def set_close_condition(self, t_last_hold_date: str, t_simu_end_date:str):
+    def set_close_condition(self, t_last_hold_date: str, t_simu_end_date: str):
         if self.m_md_end_date < t_simu_end_date:
             self.m_last_hold_date = min(self.m_md_end_date, t_last_hold_date)
         else:

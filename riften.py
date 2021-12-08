@@ -19,7 +19,7 @@ class CNAV(object):
                                  when initialized.
                               B. the index of the series is supposed to be continuous, i.e., there are not any missing
                                  dates or timestamp in the index.
-        :param t_annual_rf_rate: annualized risk free rate, must NOT be multiplied by the return scale.
+        :param t_annual_rf_rate: annualized risk-free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
         :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
         """
@@ -47,12 +47,12 @@ class CNAV(object):
         self.m_sharpe_ratio: float = 0
 
         # secondary - A max drawdown scale
-        self.m_max_drawdown_scale: float = 0  # a non negative float, multiplied by RETURN_SCALE
+        self.m_max_drawdown_scale: float = 0  # a non-negative float, multiplied by RETURN_SCALE
         self.m_max_drawdown_scale_idx: str = ""
         self.m_drawdown_scale_srs: pd.Series = pd.Series(data=0.0, index=self.m_nav_srs.index)
 
         # secondary - B max drawdown duration
-        self.m_max_drawdown_duration: int = 0  # a non negative int, stands for the duration of drawdown
+        self.m_max_drawdown_duration: int = 0  # a non-negative int, stands for the duration of drawdown
         self.m_max_drawdown_duration_idx: str = ""
         self.m_drawdown_duration_srs: pd.Series = pd.Series(data=0, index=self.m_nav_srs.index)
 

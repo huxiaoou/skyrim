@@ -56,7 +56,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
     """
-    :param t_plot_df: a pd.DataFrame with columns to be plot as lines, and string-like index. The typical scenario this function
+    :param t_plot_df: a pd.DataFrame with columns to be plotted as lines, and string-like index. The typical scenario this function
                       is called is to plot NAV(Net Assets Value) curve(s).
     :param t_fig_name: the name of the file to save the figure
     :param t_save_dir: the directory where the file is saved
@@ -65,7 +65,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
                        ["jet", "Paired", "RdBu", "spring", "summer", "autumn", "winter"]
     :param t_xtick_count: the number of ticks to be labeled on x-axis
     :param t_xlabel: the labels to be print on xticks
-    :param t_ylim: plot limit for y axis, default is (None, None), which means use limit automatically chose by Matplotlib
+    :param t_ylim: plot limit for y-axis, default is (None, None), which means use limit automatically chose by Matplotlib
     :param t_legend_loc: the location of legend, frequently used values are:
                          ["best", "upper left", "upper right"]
     :param t_tick_label_size: the size of the tick labels
@@ -94,6 +94,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
 
 
 def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+              t_tick_label_rotation: int = 0,
               t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf"):
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
@@ -110,6 +111,23 @@ def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".
                 t_xtick_count: int = 16, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
                 t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                 t_ax_title: str = "", t_save_type: str = "pdf"):
+    """
+
+    :param t_weight_df: each row stands for a time period (a date, a week, a month ...), and each column stands for the weight
+                        of an assets in the portfolio
+    :param t_fig_name:
+    :param t_save_dir:
+    :param t_colormap:
+    :param t_xtick_count:
+    :param t_xlabel:
+    :param t_ylim:
+    :param t_legend_loc:
+    :param t_tick_label_size:
+    :param t_tick_label_rotation:
+    :param t_ax_title:
+    :param t_save_type:
+    :return: a stacked bar plot
+    """
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     t_weight_df.plot(ax=ax0, kind="bar", stacked=True, colormap=t_colormap)  # core: stacked bar
     n_ticks = len(t_weight_df)
@@ -131,7 +149,7 @@ def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".
 
 def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
              t_colormap: Union[None, str] = "jet",
-             t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
+             t_xtick_span: int = 1, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
              t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
              t_ax_title: str = "", t_save_type: str = "pdf"):
     """
@@ -141,6 +159,7 @@ def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     :param t_fig_name:
     :param t_save_dir:
     :param t_colormap:
+    :param t_xtick_span:
     :param t_xlabel:
     :param t_ylim:
     :param t_legend_loc:
@@ -151,7 +170,12 @@ def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     :return:
     """
     fig0, ax0 = plt.subplots(figsize=(16, 9))
-    t_bar_df.plot(ax=ax0, kind="bar", colormap=t_colormap)  # not stacked bar, best designged for small obs, i.e., all the row labels can be plot
+    t_bar_df.plot(ax=ax0, kind="bar", colormap=t_colormap)  # not stacked bar, best designed for small obs, i.e., all the row labels can be plot
+    n_ticks = len(t_bar_df)
+    xticks = np.arange(0, n_ticks, t_xtick_span)
+    xticklabels = t_bar_df.index[xticks]
+    ax0.set_xticks(xticks)
+    ax0.set_xticklabels(xticklabels)
     ax0.set_xlabel(t_xlabel)
     ax0.set_ylim(t_ylim)
     ax0.legend(loc=t_legend_loc)
