@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.style
 from typing import List, Dict
+from skyrim.whiterun import CCalendar
+from skyrim.winterhold import check_and_mkdir, remove_files_in_the_dir
 
 '''
 Add Module Dawnstar with classes for trade and classes for portfolio to skyrim
@@ -185,12 +187,15 @@ class CTradeL2(CTradeL1):
 
 
 class CPortfolio(object):
-    def __init__(self, t_pid: str, t_groups_n: int, t_init_cash: float, t_cost_rate: float,
-                 t_md_dir: str, t_signal_dir: str, t_save_dir: str, t_simu_end_date: str, t_verbose: bool):
+    def __init__(self, t_pid: str, t_groups_n: int, t_direction: int, t_init_cash: float, t_cost_rate: float,
+                 t_md_dir: str, t_signal_dir: str, t_save_dir: str,
+                 t_cne_calendar: CCalendar, t_simu_bgn_date: str, t_simu_stp_date: str,
+                 t_verbose: bool):
         self.m_pid: str = t_pid
         self.m_max_groups_n: int = t_groups_n
         self.m_available_groups_n: int = t_groups_n
         self.m_available_groups_id: int = 0
+        self.m_direction: int = t_direction
         self.m_mgr_tid: Dict[int, List[int]] = {z: [] for z in range(t_groups_n)}
 
         self.m_active_trades_n: int = 0
@@ -218,7 +223,9 @@ class CPortfolio(object):
         self.m_nav_data_list = []
         self.m_summary_df = None
 
-        self.m_simu_end_date: str = t_simu_end_date
+        self.m_simu_bgn_date: str = t_simu_bgn_date
+        self.m_simu_stp_date: str = t_simu_stp_date
+        self.m_simu_end_date: str = t_cne_calendar.get_next_date(t_this_date=t_simu_stp_date, t_shift=-1)
         self.m_verbose: bool = t_verbose
 
     def initialize(self, t_update_date: str, t_signal_date: str):
@@ -377,6 +384,37 @@ class CPortfolio(object):
 
     def update_nav_data(self):
         self.m_nav_data_list.append(self.to_dict())
+        return 0
+
+    def dir_preparation(self):
+        check_and_mkdir(self.m_save_dir)
+        check_and_mkdir(os.path.join(self.m_save_dir, "trades"))
+        check_and_mkdir(os.path.join(self.m_save_dir, "positions"))
+        remove_files_in_the_dir(os.path.join(self.m_save_dir, "trades"))
+        remove_files_in_the_dir(os.path.join(self.m_save_dir, "positions"))
+        return 0
+
+    def main_loop(self, t_cne_calendar: CCalendar):
+        self.dir_preparation()
+
+        # core loop
+        for trade_date in t_cne_calendar.get_iter_list(t_bgn_date=self.m_simu_bgn_date, t_stp_date=self.m_simu_stp_date, t_ascending=True):
+            # set signal date and close date
+            sig_date = t_cne_calendar.get_next_date(t_this_date=trade_date, t_shift=-1)
+            last_hold_date = t_cne_calendar.get_next_date(t_this_date=trade_date, t_shift=self.m_max_groups_n - 1)
+
+            # routine actions
+            self.initialize(t_update_date=trade_date, t_signal_date=sig_date)
+            if self.load_signal(t_sid_lbl="sid"):
+                self.open_new_trades(t_last_hold_date=last_hold_date, t_direction=self.m_direction)
+            self.update()
+            self.close()
+            self.clearing_unrealized()
+
+            # save important info
+            self.take_positions_snapshots()
+            self.take_trades_records()
+            self.update_nav_data()
         return 0
 
     def summary(self):

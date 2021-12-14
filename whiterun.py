@@ -137,6 +137,7 @@ class CInstrumentInfoTable(object):
             "CZCE": "郑商所",
             "SHFE": "上期所",
             "INE": "上海能源",
+            "CFFEX": "中金所",
         }[exchange_id_eng]
         return exchange_id_chs
 
