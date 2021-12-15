@@ -15,7 +15,7 @@ class CNAV(object):
         """
 
         :param t_raw_nav_srs: A. the Net-Assets-Value series, with datetime-like index in string format.
-                                 The first item in this series can not be ONE, and the class will do the conversion
+                                 The first item in this series could not be ONE, and the class will do the conversion
                                  when initialized.
                               B. the index of the series is supposed to be continuous, i.e., there are not any missing
                                  dates or timestamp in the index.
@@ -143,7 +143,7 @@ class CNAV(object):
         :param t_type: "eng": pure English characters, "chs": chinese characters can be read by Latex
         :return:
         """
-        if t_type == "eng":
+        if t_type.lower() == "eng":
             d = {
                 "return_mean": "{:.2f}".format(self.m_return_mean),
                 "return_std": "{:.2f}".format(self.m_return_std),
@@ -157,7 +157,7 @@ class CNAV(object):
                 "max_recover_duration": "{:d}".format(self.m_max_recover_duration),
                 "max_recover_duration_idx": "{:s}".format(self.m_max_recover_duration_idx),
             }
-        elif t_type == "chs":
+        elif t_type.lower() == "chs":
             d = {
                 "收益率平均": "{:.2f}".format(self.m_return_mean),
                 "收益率波动": "{:.2f}".format(self.m_return_std),
