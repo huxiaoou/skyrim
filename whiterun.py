@@ -121,7 +121,7 @@ class CInstrumentInfoTable(object):
             self.instrument_info_df = pd.read_excel(t_path, sheet_name=t_sheet_name).set_index(t_index_label)
         else:
             self.instrument_info_df = pd.read_csv(t_path).set_index(t_index_label)
-        self.instrument_info_df["precision"] = self.instrument_info_df["miniSpread"].map(lambda z: int(-np.floor(np.log10(z))))
+        self.instrument_info_df["precision"] = self.instrument_info_df["miniSpread"].map(lambda z: max(int(-np.floor(np.log10(z))), 0))
 
     def get_multiplier(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "contractMultiplier"]
