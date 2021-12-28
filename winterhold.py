@@ -106,48 +106,7 @@ def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     return 0
 
 
-def plot_weight(t_weight_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
-                t_colormap: Union[None, str] = "jet",
-                t_xtick_count: int = 16, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
-                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
-                t_ax_title: str = "", t_save_type: str = "pdf"):
-    """
-
-    :param t_weight_df: each row stands for a time period (a date, a week, a month ...), and each column stands for the weight
-                        of an assets in the portfolio
-    :param t_fig_name:
-    :param t_save_dir:
-    :param t_colormap:
-    :param t_xtick_count:
-    :param t_xlabel:
-    :param t_ylim:
-    :param t_legend_loc:
-    :param t_tick_label_size:
-    :param t_tick_label_rotation:
-    :param t_ax_title:
-    :param t_save_type:
-    :return: a stacked bar plot
-    """
-    fig0, ax0 = plt.subplots(figsize=(16, 9))
-    t_weight_df.plot(ax=ax0, kind="bar", stacked=True, colormap=t_colormap)  # core: stacked bar
-    n_ticks = len(t_weight_df)
-    xticks = np.arange(0, n_ticks, int(n_ticks / t_xtick_count))
-    xticklabels = t_weight_df.index[xticks]
-    ax0.set_xticks(xticks)
-    ax0.set_xticklabels(xticklabels)
-    ax0.set_xlabel(t_xlabel)
-    ax0.set_ylim(t_ylim)
-    ax0.legend(loc=t_legend_loc)
-    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
-    ax0.set_title(t_ax_title)
-    fig0_name = t_fig_name + "." + t_save_type
-    fig0_path = os.path.join(t_save_dir, fig0_name)
-    fig0.savefig(fig0_path, bbox_inches="tight")
-    plt.close(fig0)
-    return 0
-
-
-def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+def plot_bar(t_bar_df: pd.DataFrame, t_stacked: str, t_fig_name: str, t_save_dir: str = ".",
              t_colormap: Union[None, str] = "jet",
              t_xtick_span: int = 1, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
              t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
@@ -156,6 +115,9 @@ def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
 
     :param t_bar_df: if not transposed, each row(obs) of t_bar_df means a tick in the x-axis,
                      and a cluster the columns(variables) of the row are plot at the tick.
+    :param t_stacked: whether bar plot should be stacked, most frequently used sense:
+                      True: usually for weight plot
+                      False: best designed for small obs, i.e., all the row labels can be plotted
     :param t_fig_name:
     :param t_save_dir:
     :param t_colormap:
@@ -170,7 +132,7 @@ def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     :return:
     """
     fig0, ax0 = plt.subplots(figsize=(16, 9))
-    t_bar_df.plot(ax=ax0, kind="bar", colormap=t_colormap)  # not stacked bar, best designed for small obs, i.e., all the row labels can be plot
+    t_bar_df.plot(ax=ax0, kind="bar", stacked=t_stacked, colormap=t_colormap)
     n_ticks = len(t_bar_df)
     xticks = np.arange(0, n_ticks, t_xtick_span)
     xticklabels = t_bar_df.index[xticks]
@@ -185,4 +147,64 @@ def plot_bar(t_bar_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     fig0_path = os.path.join(t_save_dir, fig0_name)
     fig0.savefig(fig0_path, bbox_inches="tight")
     plt.close(fig0)
+    return 0
+
+
+def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: list,
+               t_primary_kind: str, t_secondary_kind: str,
+               t_fig_name: str, t_save_dir: str = ".",
+               t_line_width: float = 2,
+               t_primary_colormap: Union[None, str] = "jet", t_secondary_colormap: Union[None, str] = "jet",
+               t_primary_style="-", t_secondary_style="-.",
+               t_primary_ylim: tuple = (None, None), t_secondary_ylim: tuple = (None, None),
+               t_legend_loc: str = "upper left",
+               t_xtick_span: int = 1, t_xlabel: str = "",
+               t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
+               t_ax_title: str = "", t_save_type: str = "pdf"):
+    """
+
+    :param t_plot_df:
+    :param t_primary_cols: columns to be plotted at primary(left-y) axis
+    :param t_secondary_cols: columns to be plotted at secondary(right-y) axis
+    :param t_primary_kind: plot kind for main(left-y) axis, available options = ["bar", "barh", "line"]
+    :param t_secondary_kind: plot kind for secondary(right-y) axis, available options = ["bar", "barh", "line"]
+    :param t_fig_name:
+    :param t_save_dir:
+    :param t_line_width:
+    :param t_primary_colormap:
+    :param t_secondary_colormap:
+    :param t_primary_style:
+    :param t_secondary_style:
+    :param t_legend_loc:
+    :param t_primary_ylim:
+    :param t_secondary_ylim:
+    :param t_xtick_span:
+    :param t_xlabel:
+    :param t_tick_label_size:
+    :param t_tick_label_rotation:
+    :param t_ax_title:
+    :param t_save_type:
+    :return:
+    """
+    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    ax1 = ax0.twinx()
+    t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap, lw=t_line_width, style=t_primary_style)
+    t_plot_df[t_secondary_cols].plot(ax=ax1, kind=t_secondary_kind, colormap=t_secondary_colormap, lw=t_line_width, style=t_secondary_style)
+    # merge legends
+    lines0, labels0 = ax0.get_legend_handles_labels()
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    ax1.legend(lines0 + lines1, labels0 + labels1, loc=t_legend_loc)
+
+    xticks = np.arange(0, len(t_plot_df), t_xtick_span)
+    xticklabels = t_plot_df.index[xticks]
+    ax0.set_xticks(xticks)
+    ax0.set_xticklabels(xticklabels)
+    ax0.set_xlabel(t_xlabel)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
+    ax0.set_title(t_ax_title)
+    fig0_name = t_fig_name + "." + t_save_type
+    fig0_path = os.path.join(t_save_dir, fig0_name)
+    fig0.savefig(fig0_path, bbox_inches="tight")
+    plt.close(fig0)
+
     return 0
