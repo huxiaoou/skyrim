@@ -190,6 +190,7 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     ax1 = ax0.twinx()
     t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap, lw=t_line_width, style=t_primary_style)
     t_plot_df[t_secondary_cols].plot(ax=ax1, kind=t_secondary_kind, colormap=t_secondary_colormap, lw=t_line_width, style=t_secondary_style)
+
     # merge legends
     lines0, labels0 = ax0.get_legend_handles_labels()
     lines1, labels1 = ax1.get_legend_handles_labels()
@@ -200,6 +201,8 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     ax0.set_xticks(xticks)
     ax0.set_xticklabels(xticklabels)
     ax0.set_xlabel(t_xlabel)
+    ax0.set_ylim(t_primary_ylim)
+    ax1.set_ylim(t_secondary_ylim)
     ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
     ax0.set_title(t_ax_title)
     fig0_name = t_fig_name + "." + t_save_type
