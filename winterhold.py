@@ -106,7 +106,7 @@ def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
     return 0
 
 
-def plot_bar(t_bar_df: pd.DataFrame, t_stacked: str, t_fig_name: str, t_save_dir: str = ".",
+def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_dir: str = ".",
              t_colormap: Union[None, str] = "jet",
              t_xtick_span: int = 1, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
              t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
