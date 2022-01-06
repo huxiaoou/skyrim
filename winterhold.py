@@ -188,7 +188,7 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     """
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     ax1 = ax0.twinx()
-    t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap, lw=t_line_width, style=t_primary_style)
+    t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap, lw=t_line_width, style=t_primary_style, legend=None)
     t_plot_df[t_secondary_cols].plot(ax=ax1, kind=t_secondary_kind, colormap=t_secondary_colormap, lw=t_line_width, style=t_secondary_style)
 
     # merge legends
