@@ -425,13 +425,14 @@ class CPortfolio(object):
         self.m_summary_df.to_csv(res_path, index=False, float_format="%.4f")
         return self.m_summary_df
 
-    def plot_nav(self, t_ticks_num: int = 10, t_tick_label_size: int = 12, t_line_width: float = 2.0):
+    def plot_nav(self, t_ticks_num: int = 10, t_tick_label_size: int = 12, t_line_width: float = 2.0, t_twinx_plot: bool = False):
         fig0, ax0 = plt.subplots(figsize=(16, 9))
         navps = self.m_summary_df["navps"]
-        ret_sum = (navps / navps.shift(1).fillna(method="bfill") - 1).cumsum() + 1
-        ax1 = ax0.twinx()
         navps.plot(ax=ax0, lw=t_line_width, style="b-")
-        ret_sum.plot(ax=ax1, lw=t_line_width, style="r-.")
+        if t_twinx_plot:
+            ret_sum = (navps / navps.shift(1).fillna(method="bfill") - 1).cumsum() + 1
+            ax1 = ax0.twinx()
+            ret_sum.plot(ax=ax1, lw=t_line_width, style="r-.")
         n_ticks = len(self.m_summary_df)
         xticks = np.arange(0, n_ticks, int(n_ticks / t_ticks_num))
         xticklabels = self.m_summary_df.loc[xticks, "trade_date"]
