@@ -199,7 +199,7 @@ class CPortfolio(object):
         self.m_mgr_tid: Dict[int, List[int]] = {z: [] for z in range(t_groups_n)}
 
         self.m_active_trades_n: int = 0
-        self.m_active_trades_manager: Dict[int, CTradeL1] = {}
+        self.m_active_trades_manager: Dict[int, CTradeL1] = {}  # tid |-> CTradeL1
         self.m_tid: int = 0
 
         self.m_update_date: str = ""
@@ -333,7 +333,7 @@ class CPortfolio(object):
 
             for gid in self.m_mgr_tid:
                 if tid in self.m_mgr_tid[gid]:
-                    self.m_mgr_tid[gid] = []
+                    self.m_mgr_tid[gid] = []  # if at least one trades in this group is closed, this group will be seen as available
                     self.m_available_groups_n += 1
 
         for gid in self.m_mgr_tid:
