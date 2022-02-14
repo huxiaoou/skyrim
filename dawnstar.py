@@ -29,7 +29,7 @@ BASE_SHARES = 100
 
 
 class CTradeBase(object):
-    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float, t_stop_return: float = 9.95):
+    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float, t_stop_return: float):
         self.m_sid: str = t_sid
         md_file = "{}.md.csv.gz".format(t_sid)
         md_path = os.path.join(t_md_dir, md_file)
@@ -139,8 +139,8 @@ class CTradeBase(object):
 
 
 class CTradeL1(CTradeBase):
-    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float):
-        super().__init__(t_sid, t_md_dir, t_cost_rate)
+    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float, t_stop_return: float):
+        super().__init__(t_sid, t_md_dir, t_cost_rate, t_stop_return)
         self.m_last_hold_date: str = ""
 
     def set_close_condition(self, t_last_hold_date: str, t_simu_end_date: str):
@@ -157,8 +157,8 @@ class CTradeL1(CTradeBase):
 
 
 class CTradeL2(CTradeL1):
-    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float):
-        super().__init__(t_sid, t_md_dir, t_cost_rate)
+    def __init__(self, t_sid: str, t_md_dir: str, t_cost_rate: float, t_stop_return: float):
+        super().__init__(t_sid, t_md_dir, t_cost_rate, t_stop_return)
         self.m_mdd_cap: float = 0
         self.m_mdd: float = 0
         self.m_h: float = 1
@@ -190,7 +190,24 @@ class CPortfolio(object):
     def __init__(self, t_pid: str, t_groups_n: int, t_direction: int, t_init_cash: float, t_cost_rate: float,
                  t_md_dir: str, t_signal_dir: str, t_save_dir: str,
                  t_cne_calendar: CCalendar, t_simu_bgn_date: str, t_simu_stp_date: str,
-                 t_verbose: bool):
+                 t_stop_return: float = 9.90,
+                 t_verbose: bool = False):
+        """
+
+        :param t_pid: portfolio ID
+        :param t_groups_n: number of subgroup
+        :param t_direction: 1 for long, -1 for short
+        :param t_init_cash: available cash at the beginning
+        :param t_cost_rate: single
+        :param t_md_dir: market data directory
+        :param t_signal_dir: signals directory
+        :param t_save_dir: directory for saving results
+        :param t_cne_calendar: CCalendar
+        :param t_simu_bgn_date: begin date for simulation
+        :param t_simu_stp_date: stop(not included) date for simulation
+        :param t_stop_return: rise stop or fall stop, which should be multiplied by RETURN_SCALE already, i.e. 10 for 10%
+        :param t_verbose: if true, details would be print
+        """
         self.m_pid: str = t_pid
         self.m_max_groups_n: int = t_groups_n
         self.m_available_groups_n: int = t_groups_n
@@ -226,6 +243,7 @@ class CPortfolio(object):
         self.m_simu_bgn_date: str = t_simu_bgn_date
         self.m_simu_stp_date: str = t_simu_stp_date
         self.m_simu_end_date: str = t_cne_calendar.get_next_date(t_this_date=t_simu_stp_date, t_shift=-1)
+        self.m_stop_return: float = t_stop_return
         self.m_verbose: bool = t_verbose
 
     def initialize(self, t_update_date: str, t_signal_date: str):
@@ -262,7 +280,7 @@ class CPortfolio(object):
         if self.m_available_groups_n > 0:
             amt_for_each_trade = self.m_available_cash / self.m_available_groups_n / len(self.m_signal_list)
             for sid in self.m_signal_list:
-                new_trade = CTradeL1(t_sid=sid, t_md_dir=self.m_md_dir, t_cost_rate=self.m_cost_rate)
+                new_trade = CTradeL1(t_sid=sid, t_md_dir=self.m_md_dir, t_cost_rate=self.m_cost_rate, t_stop_return=self.m_stop_return)
                 if new_trade.open(
                         t_open_date=self.m_update_date,
                         t_allocated_amt=amt_for_each_trade,
