@@ -32,7 +32,7 @@ class CNAV(object):
             self.m_nav_srs: pd.Series = t_raw_nav_srs / t_raw_nav_srs.iloc[0]  # set the first value to be 1
             self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * self.m_ret_scale).fillna(0)  # has the same length as nav srs
         elif t_type.upper() == "RET":
-            self.m_rtn_srs: pd.Series = t_raw_nav_srs
+            self.m_rtn_srs: pd.Series = t_raw_nav_srs * self.m_ret_scale
             self.m_nav_srs: pd.Series = (t_raw_nav_srs + 1).cumprod()
         else:
             print("Not a right type parameter, please check again.")
