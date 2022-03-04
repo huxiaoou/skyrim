@@ -7,24 +7,38 @@ created @ 2021-02-22
 1.  this class provide methods to calculate some frequently used index
 '''
 
-RETURN_SCALE = 100
-
 
 class CNAV(object):
-    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str):
+    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str, t_ret_scale: int = 100, t_type: str = "NAV"):
         """
 
-        :param t_raw_nav_srs: A. the Net-Assets-Value series, with datetime-like index in string format.
-                                 The first item in this series could not be ONE, and the class will do the conversion
-                                 when initialized.
+        :param t_raw_nav_srs: A. if t_type == "NAV":
+                                    the Net-Assets-Value series, with datetime-like index in string format.
+                                    The first item in this series could not be ONE, and the class will do the conversion
+                                    when initialized.
+                                 elif t_type == "NAV":
+                                    the Assets Return series, the return should NOT be multiplied by RETURN_SCALE
+
                               B. the index of the series is supposed to be continuous, i.e., there are not any missing
                                  dates or timestamp in the index.
         :param t_annual_rf_rate: annualized risk-free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
         :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
+        :param t_type: "NAV" or "RET
         """
-        self.m_nav_srs: pd.Series = t_raw_nav_srs / t_raw_nav_srs.iloc[0]  # set the first value to be 1
-        self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * RETURN_SCALE).fillna(0)  # has the same length as nav srs
+        self.m_ret_scale: int = t_ret_scale
+
+        if t_type.upper() == "NAV":
+            self.m_nav_srs: pd.Series = t_raw_nav_srs / t_raw_nav_srs.iloc[0]  # set the first value to be 1
+            self.m_rtn_srs: pd.Series = ((t_raw_nav_srs / t_raw_nav_srs.shift(1) - 1) * self.m_ret_scale).fillna(0)  # has the same length as nav srs
+        elif t_type.upper() == "RET":
+            self.m_rtn_srs: pd.Series = t_raw_nav_srs
+            self.m_nav_srs: pd.Series = (t_raw_nav_srs + 1).cumprod()
+        else:
+            print("Not a right type parameter, please check again.")
+            self.m_nav_srs = None
+            self.m_rtn_srs = None
+
         self.m_obs: int = len(t_raw_nav_srs)
 
         self.m_annual_factor: int = {
@@ -36,7 +50,7 @@ class CNAV(object):
             "Y": 1,
         }[t_freq]
 
-        self.m_annual_rf_rate: float = t_annual_rf_rate * RETURN_SCALE
+        self.m_annual_rf_rate: float = t_annual_rf_rate * self.m_ret_scale
 
         # frequently used performance index
         # primary
@@ -70,14 +84,14 @@ class CNAV(object):
         return 0
 
     def cal_hold_period_return(self):
-        self.m_hold_period_return = (self.m_nav_srs.iloc[-1] / self.m_nav_srs.iloc[0] - 1) * RETURN_SCALE
+        self.m_hold_period_return = (self.m_nav_srs.iloc[-1] / self.m_nav_srs.iloc[0] - 1) * self.m_ret_scale
         return 0
 
     def cal_annual_return(self, t_method: str = "linear"):
         if t_method == "linear":
             self.m_annual_return = self.m_rtn_srs.mean() * self.m_annual_factor
         else:
-            self.m_annual_return = (np.power(self.m_hold_period_return / RETURN_SCALE + 1, self.m_annual_factor / len(self.m_rtn_srs)) - 1) * RETURN_SCALE
+            self.m_annual_return = (np.power(self.m_hold_period_return / self.m_ret_scale + 1, self.m_annual_factor / len(self.m_rtn_srs)) - 1) * self.m_ret_scale
         return 0
 
     def cal_sharpe_ratio(self):
@@ -88,7 +102,7 @@ class CNAV(object):
         return 0
 
     def cal_max_drawdown_scale(self):
-        self.m_drawdown_scale_srs: pd.Series = (1 - self.m_nav_srs / self.m_nav_srs.cummax()) * RETURN_SCALE
+        self.m_drawdown_scale_srs: pd.Series = (1 - self.m_nav_srs / self.m_nav_srs.cummax()) * self.m_ret_scale
         self.m_max_drawdown_scale = self.m_drawdown_scale_srs.max()
         self.m_max_drawdown_scale_idx = self.m_drawdown_scale_srs.idxmax()
         return 0
