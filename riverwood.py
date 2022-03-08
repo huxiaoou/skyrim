@@ -505,7 +505,7 @@ class CPortfolio(object):
                 new_trade.set_executed_price(t_executed_price=executed_price)
             self.update_from_trades(t_trades_list=array_new_trades, t_instru_info=t_instru_info)
 
-            # --- regular procedures
+            # --- update with market data for realized and unrealized pnl
             self.update_realized_pnl()
             self.update_unrealized_pnl(t_mgr_md=t_mgr_md)
             self.update_nav()
@@ -514,5 +514,7 @@ class CPortfolio(object):
             self.save_trades()
             self.save_position()
             self.save_nav_snapshots()
+
+        # save nav
         self.save_nav()
         return 0
