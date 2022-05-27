@@ -83,8 +83,9 @@ class CManagerSignal(object):
         # --- selected universe
         opt_universe = list(self.m_mother_universe_set.intersection(available_universe_set).intersection(factor_universe_set))
         opt_universe_size = len(opt_universe)
-        opt_weight_df = factor_df.loc[opt_universe].sort_values(by=self.m_factor_lbl, ascending=not self.m_is_trend_follow)
+        opt_weight_df = factor_df.loc[opt_universe]
         opt_weight_df = opt_weight_df.reset_index()
+        opt_weight_df = opt_weight_df.sort_values(by=[self.m_factor_lbl, "instrument"], ascending=[not self.m_is_trend_follow, True])
         if opt_universe_size > 1:
             _k0 = max(min(int(np.ceil(opt_universe_size * self.m_single_hold_prop)), int(opt_universe_size / 2)), 1)
             _k1 = opt_universe_size - 2 * _k0
