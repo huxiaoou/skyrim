@@ -34,10 +34,9 @@ class CManagerMarketData(object):
         return self.m_major[t_instrument_id].at[t_trade_date, "n_contract"]
 
 
-class CManagerSignal(object):
+class CManagerSignalBase(object):
     def __init__(self, t_mother_universe: list, t_available_universe_dir: str,
-                 t_factors_by_tm_dir: str, t_factor_lbl: str,
-                 t_single_hold_prop: float, t_mgr_md: CManagerMarketData,
+                 t_factors_by_tm_dir: str, t_factor_lbl: str, t_mgr_md: CManagerMarketData,
                  t_is_trend_follow: bool = True):
         """
 
@@ -45,7 +44,6 @@ class CManagerSignal(object):
         :param t_available_universe_dir:
         :param t_factors_by_tm_dir:
         :param t_factor_lbl:
-        :param t_single_hold_prop:
         :param t_mgr_md:
         :param t_is_trend_follow: if true, program would long instrument with large signal values and short instrument with small values
                                   else program would long instrument with small signal values and short instrument with large values
@@ -55,9 +53,11 @@ class CManagerSignal(object):
         self.m_available_universe_dir: str = t_available_universe_dir
         self.m_factors_by_tm_dir: str = t_factors_by_tm_dir
         self.m_factor_lbl: str = t_factor_lbl
-        self.m_single_hold_prop: float = t_single_hold_prop
         self.m_mgr_md: CManagerMarketData = t_mgr_md
         self.m_is_trend_follow: bool = t_is_trend_follow
+
+    def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int) -> pd.DataFrame:
+        pass
 
     def cal_new_pos(self, t_sig_date: str, t_exe_date: str, t_type: int = 0) -> pd.DataFrame:
         """
@@ -80,24 +80,16 @@ class CManagerSignal(object):
         factor_df = pd.read_csv(factor_path).set_index("instrument")
         factor_universe_set = set(factor_df.index)
 
-        # --- selected universe
+        # --- selected/optimized universe
         opt_universe = list(self.m_mother_universe_set.intersection(available_universe_set).intersection(factor_universe_set))
-        opt_universe_size = len(opt_universe)
         opt_weight_df = factor_df.loc[opt_universe]
         opt_weight_df = opt_weight_df.reset_index()
         opt_weight_df = opt_weight_df.sort_values(by=[self.m_factor_lbl, "instrument"], ascending=[not self.m_is_trend_follow, True])
-        if opt_universe_size > 1:
-            _k0 = max(min(int(np.ceil(opt_universe_size * self.m_single_hold_prop)), int(opt_universe_size / 2)), 1)
-            _k1 = opt_universe_size - 2 * _k0
-            if t_type == 1:
-                opt_weight_df["opt"] = [1 / _k0] * _k0 + [0.0] * _k1 + [0.0] * _k0
-            elif t_type == 2:
-                opt_weight_df["opt"] = [0.0] * _k0 + [0.0] * _k1 + [-1 / _k0] * _k0
-            else:
-                opt_weight_df["opt"] = [1 / 2 / _k0] * _k0 + [0.0] * _k1 + [-1 / 2 / _k0] * _k0
-        else:
-            opt_weight_df["opt"] = 0
 
+        # --- cal weight
+        opt_weight_df = self.cal_weight(t_opt_weight_df=opt_weight_df, t_type=t_type)
+
+        # --- reformat
         opt_weight_df["contract"] = opt_weight_df["instrument"].map(
             lambda z: self.m_mgr_md.inquiry_major_contract(z, t_exe_date))
         opt_weight_df["price"] = opt_weight_df[["instrument", "contract"]].apply(
@@ -112,6 +104,49 @@ class CManagerSignal(object):
             print(factor_df)
 
         return opt_weight_df[["contract", "price", "direction", "weight"]]
+
+
+class CManagerSignalSHP(CManagerSignalBase):
+    def __init__(self, t_mother_universe: list, t_available_universe_dir: str,
+                 t_factors_by_tm_dir: str, t_factor_lbl: str,
+                 t_single_hold_prop: float, t_mgr_md: CManagerMarketData,
+                 t_is_trend_follow: bool = True):
+        super(CManagerSignalSHP, self).__init__(
+            t_mother_universe, t_available_universe_dir, t_factors_by_tm_dir, t_factor_lbl, t_mgr_md, t_is_trend_follow)
+        self.m_single_hold_prop: float = t_single_hold_prop
+
+    def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
+        opt_universe_size = len(t_opt_weight_df)
+        if opt_universe_size > 1:
+            _k0 = max(min(int(np.ceil(opt_universe_size * self.m_single_hold_prop)), int(opt_universe_size / 2)), 1)
+            _k1 = opt_universe_size - 2 * _k0
+            if t_type == 1:
+                # long only
+                t_opt_weight_df["opt"] = [1 / _k0] * _k0 + [0.0] * _k1 + [0.0] * _k0
+            elif t_type == 2:
+                # short only
+                t_opt_weight_df["opt"] = [0.0] * _k0 + [0.0] * _k1 + [-1 / _k0] * _k0
+            else:
+                # both
+                t_opt_weight_df["opt"] = [1 / 2 / _k0] * _k0 + [0.0] * _k1 + [-1 / 2 / _k0] * _k0
+        else:
+            t_opt_weight_df["opt"] = 0
+        return t_opt_weight_df
+
+
+class CManagerSignalTS(CManagerSignalBase):
+    def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
+        if t_type == 1:
+            # long only
+            t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl].map(lambda z: max(np.sign(z), 0))
+        elif t_type == 2:
+            # short only
+            t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl].map(lambda z: min(np.sign(z), 0))
+        else:
+            # both
+            t_opt_weight_df["opt"] = np.sign(t_opt_weight_df[self.m_factor_lbl])
+        t_opt_weight_df["opt"] = t_opt_weight_df["opt"] / t_opt_weight_df["opt"].abs().sum()
+        return t_opt_weight_df
 
 
 # ------------------------------------------ Classes about trades -------------------------------------------------------------------
@@ -482,7 +517,7 @@ class CPortfolio(object):
 
     def main_loop(self, t_simu_bgn_date: str, t_simu_stp_date: str, t_start_delay: int, t_hold_period_n: int,
                   t_trade_calendar: CCalendar, t_instru_info: CInstrumentInfoTable,
-                  t_mgr_signal: CManagerSignal, t_mgr_md: CManagerMarketData):
+                  t_mgr_signal: CManagerSignalBase, t_mgr_md: CManagerMarketData):
         iter_trade_dates_list = t_trade_calendar.get_iter_list(t_bgn_date=t_simu_bgn_date, t_stp_date=t_simu_stp_date, t_ascending=True)
         for ti, trade_date in enumerate(iter_trade_dates_list):
             # --- initialize
