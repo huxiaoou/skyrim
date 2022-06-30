@@ -189,3 +189,16 @@ class CInstrumentInfoTable(object):
             _cost_float = (t_open_price + t_close_price) * _contract_multiplier * t_qty * _rate_float
             _cost_fix = _rate_fix * 2
         return (_cost_float + _cost_fix) * t_adjust_rate
+
+
+def convert_contract_id_to_wind_format(t_contract_id: str, t_instru_info_table: CInstrumentInfoTable):
+    """
+
+    :param t_contract_id: general contract id, such as "j2209"
+    :param t_instru_info_table:
+    :return: "J2209.DCE"
+    """
+
+    _instrument_id = parse_instrument_from_contract(t_contract_id=t_contract_id)
+    _exchange_id = t_instru_info_table.get_exchangeId(t_instrument_id=_instrument_id)
+    return t_contract_id.upper() + "." + _exchange_id
