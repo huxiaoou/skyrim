@@ -1,5 +1,6 @@
 import numpy as np
 import cvxpy as cvp
+import pandas as pd
 import scipy.optimize
 from scipy.optimize import minimize
 from scipy.sparse.linalg import ArpackNoConvergence
@@ -501,6 +502,36 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     if t_verbose:
         print("Maximum iter times reached before an optimal solution is found.")
     return None, None
+
+
+def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_verbose: bool):
+    if t_verbose:
+        print("-" * 80)
+        print(t_weight_df)
+        print("-" * 80)
+        print(t_weight_df.sum())
+        print("-" * 80)
+        print(t_risk_factor_exposure.dot(t_weight_df))
+        print("-" * 80)
+    return 0
+
+
+def check_utility(t_w_opt: np.ndarray, t_w_ben: np.ndarray, t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float, t_verbose: bool):
+    if t_verbose:
+        _w = np.array([t_w_opt, t_w_ben])
+        _mu_opt = t_w_opt.dot(t_mu)
+        _mu_ben = t_w_ben.dot(t_mu)
+        _sigma_opt = t_w_opt.dot(t_sigma).dot(t_w_opt)
+        _sigma_ben = t_w_ben.dot(t_sigma).dot(t_w_ben)
+        _uty_opt = _mu_opt - t_lbd * _sigma_opt / 2
+        _uty_ben = _mu_ben - t_lbd * _sigma_ben / 2
+        _res_df = pd.DataFrame({
+            "mu": {"opt": _mu_opt, "ben": _mu_ben},
+            "sigma": {"opt": _sigma_opt, "ben": _sigma_ben},
+            "uty": {"opt": _uty_opt, "ben": _uty_ben},
+        })
+        print(_res_df)
+    return 0
 
 
 def minimize_utility_con_analytic(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float, t_H: np.ndarray, t_h: np.ndarray, t_F: np.ndarray, t_f: np.ndarray) -> (np.ndarray, float):
