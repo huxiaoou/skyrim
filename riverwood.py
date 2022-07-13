@@ -149,6 +149,21 @@ class CManagerSignalTS(CManagerSignalBase):
         return t_opt_weight_df
 
 
+class CManagerSignalOpt(CManagerSignalBase):
+    def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
+        if t_type == 1:
+            # long only
+            t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl].map(lambda z: max(z, 0))
+        elif t_type == 2:
+            # short only
+            t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl].map(lambda z: min(z, 0))
+        else:
+            # both
+            t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl]
+        # t_opt_weight_df["opt"] = t_opt_weight_df["opt"] / t_opt_weight_df["opt"].abs().sum()
+        return t_opt_weight_df
+
+
 # ------------------------------------------ Classes about trades -------------------------------------------------------------------
 # --- custom type definition
 TypeContract = NewType("TypeContract", str)
