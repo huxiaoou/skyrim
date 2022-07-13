@@ -5,13 +5,14 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.style
 import seaborn as sns
+import shutil
 from typing import Union
 
 matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
 matplotlib.style.use("Solarize_Light2")
 
 
-def check_and_mkdir(t_path):
+def check_and_mkdir(t_path:str):
     if not os.path.exists(t_path):
         os.mkdir(t_path)
         return 1
@@ -19,9 +20,14 @@ def check_and_mkdir(t_path):
         return 0
 
 
-def remove_files_in_the_dir(t_path):
+def remove_files_in_the_dir(t_path:str):
     for f in os.listdir(t_path):
         os.remove(os.path.join(t_path, f))
+    return 0
+
+def check_and_remove_tree(t_path:str):
+    if os.path.exists(t_path):
+        shutil.rmtree(t_path)
     return 0
 
 
