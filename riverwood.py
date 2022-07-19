@@ -160,7 +160,8 @@ class CManagerSignalOpt(CManagerSignalBase):
         else:
             # both
             t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl]
-        # t_opt_weight_df["opt"] = t_opt_weight_df["opt"] / t_opt_weight_df["opt"].abs().sum()
+        filter_minimum_wgt = t_opt_weight_df["opt"].abs() <= 1e-3
+        t_opt_weight_df.loc[filter_minimum_wgt, "opt"] = 0
         return t_opt_weight_df
 
 
