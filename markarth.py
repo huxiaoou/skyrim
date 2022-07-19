@@ -439,6 +439,7 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
                                 t_risk_factor_exposure: np.ndarray, t_ben_wgt: np.ndarray,
                                 t_l_risk_exposure_offset: float, t_r_risk_exposure_offset: float,
                                 t_constraint_type: int,
+                                t_min_weight: float = 0,
                                 t_solver: str = "ECOS",
                                 t_max_iter_times: int = 20, t_verbose: bool = False) -> (np.ndarray, float):
     """
@@ -453,6 +454,7 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     :param t_l_risk_exposure_offset:  lower offset for sector exposure of optimal portfolio
     :param t_r_risk_exposure_offset:  higher offset for sector exposure of optimal portfolio
     :param t_constraint_type: 1 for long only, -1 for short allowed.
+    :param t_min_weight: minimum weight
     :param t_solver: frequently used solvers = ["ECOS", "OSQP", "SCS"], "SCS" solve all the problem
     :param t_max_iter_times: maximum iteration times
     :param t_verbose: whether to print error information
@@ -477,7 +479,7 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
             if t_constraint_type < 0:
                 _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.norm(_w, 1) <= 1]
             else:
-                _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.sum(_w) <= 1, _w >= 0]
+                _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.sum(_w) <= 1, _w >= t_min_weight]
 
             _problem = cvp.Problem(_objective, _constraints)
             _problem.solve(solver=t_solver)
