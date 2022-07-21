@@ -506,6 +506,67 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     return None, None
 
 
+def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float,
+                                t_risk_factor_exposure: np.ndarray,
+                                t_l_risk_exposure_offset: float, t_r_risk_exposure_offset: float,
+                                t_solver: str = "ECOS",
+                                t_max_iter_times: int = 20, t_verbose: bool = False) -> (np.ndarray, float):
+    """
+    Just another portfolio optimizer.
+
+    :param t_mu:
+    :param t_sigma:
+    :param t_lbd:
+    :param t_risk_factor_exposure: array with size = (number of risk factors, number of instruments)
+    :param t_l_risk_exposure_offset:  lower offset for sector exposure of optimal portfolio
+    :param t_r_risk_exposure_offset:  higher offset for sector exposure of optimal portfolio
+    :param t_solver: frequently used solvers = ["ECOS", "OSQP", "SCS"], "SCS" solve all the problem
+    :param t_max_iter_times: maximum iteration times
+    :param t_verbose: whether to print error information
+    :return: weight of the portfolio with maximum utility and x in bounds, leverage is not allowed.
+             short is allowed.
+             bounds for each weight are given.
+             risk exposure control are also applied.
+             constraints are just divide constraints into two parts: linear and non-linear.
+    """
+
+    _p, _ = t_sigma.shape
+    _num_fac, _num_ins = t_risk_factor_exposure.shape
+    _H = t_risk_factor_exposure
+    _lb = np.zeros(_num_fac) + t_l_risk_exposure_offset
+    _rb = np.zeros(_num_fac) + t_r_risk_exposure_offset
+
+    _iter_times = 0
+    while _iter_times < t_max_iter_times:
+        try:
+            _w = cvp.Variable(_p)
+            _objective = cvp.Minimize(-2 / t_lbd * t_mu @ _w + cvp.quad_form(_w, t_sigma))
+            _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.norm(_w, 1) <= 1]
+            _problem = cvp.Problem(_objective, _constraints)
+            _problem.solve(solver=t_solver)
+            if _problem.status == "optimal":
+                _u = portfolio_utility(t_w=_w.value, t_mu=t_mu, t_sigma=t_sigma, t_lbd=t_lbd)
+                return _w.value, _u
+            else:
+                _iter_times += 1
+        except cvp.error.DCPError:
+            if t_verbose:
+                print("Function tried for {} time".format(_iter_times))
+                print("ERROR! Optimizer exits with a failure")
+                print("Problem does not follow DCP rules")
+            _iter_times += 1
+        except ArpackNoConvergence:
+            if t_verbose:
+                print("Function tried for {} time".format(_iter_times))
+                print("ERROR! Optimizer exits with a failure")
+                print("Arpack No Convergence Error")
+            _iter_times += 1
+
+    if t_verbose:
+        print("Maximum iter times reached before an optimal solution is found.")
+    return None, None
+
+
 def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_verbose: bool):
     if t_verbose:
         print("-" * 80)
