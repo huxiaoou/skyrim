@@ -509,6 +509,7 @@ def minimize_utility_con8_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
 def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float,
                                 t_risk_factor_exposure: np.ndarray,
                                 t_l_risk_exposure_offset: float, t_r_risk_exposure_offset: float,
+                                t_weight_cap: float = 1,
                                 t_solver: str = "ECOS",
                                 t_max_iter_times: int = 20, t_verbose: bool = False) -> (np.ndarray, float):
     """
@@ -520,6 +521,7 @@ def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     :param t_risk_factor_exposure: array with size = (number of risk factors, number of instruments)
     :param t_l_risk_exposure_offset:  lower offset for sector exposure of optimal portfolio
     :param t_r_risk_exposure_offset:  higher offset for sector exposure of optimal portfolio
+    :param t_weight_cap: cap of absolute value of weight of each instrument
     :param t_solver: frequently used solvers = ["ECOS", "OSQP", "SCS"], "SCS" solve all the problem
     :param t_max_iter_times: maximum iteration times
     :param t_verbose: whether to print error information
@@ -541,7 +543,7 @@ def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
         try:
             _w = cvp.Variable(_p)
             _objective = cvp.Minimize(-2 / t_lbd * t_mu @ _w + cvp.quad_form(_w, t_sigma))
-            _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.norm(_w, 1) <= 1]
+            _constraints = [_H @ _w <= _rb, _H @ _w >= _lb, cvp.norm(_w, 1) <= 1, cvp.abs(_w) <= t_weight_cap]
             _problem = cvp.Problem(_objective, _constraints)
             _problem.solve(solver=t_solver)
             if _problem.status == "optimal":
@@ -571,6 +573,8 @@ def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFra
     if t_verbose:
         print("-" * 80)
         print(t_weight_df)
+        print("-" * 80)
+        print(t_weight_df.abs().sum())
         print("-" * 80)
         print(t_weight_df.sum())
         print("-" * 80)
