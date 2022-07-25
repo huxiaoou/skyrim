@@ -569,42 +569,40 @@ def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     return None, None
 
 
-def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_revenue_factor_exposure: pd.DataFrame, t_verbose: bool):
-    if t_verbose:
-        print("-" * 80)
-        print("weight df:")
-        print(t_weight_df)
-        print("-" * 80)
-        print("weight df abs sum:")
-        print(t_weight_df.abs().sum())
-        print("-" * 80)
-        print("weight df sum:")
-        print(t_weight_df.sum())
-        print("-" * 80)
-        print("risk factor exposure:")
-        print(t_risk_factor_exposure.dot(t_weight_df))
-        print("-" * 80)
-        print("revenue factor exposure:")
-        print(t_revenue_factor_exposure.dot(t_weight_df))
-        print("-" * 80)
+def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_revenue_factor_exposure: pd.DataFrame):
+    print("-" * 80)
+    print("weight df:")
+    print(t_weight_df)
+    print("-" * 80)
+    print("weight df abs sum:")
+    print(t_weight_df.abs().sum())
+    print("-" * 80)
+    print("weight df sum:")
+    print(t_weight_df.sum())
+    print("-" * 80)
+    print("risk factor exposure:")
+    print(t_risk_factor_exposure.dot(t_weight_df))
+    print("-" * 80)
+    print("revenue factor exposure:")
+    print(t_revenue_factor_exposure.dot(t_weight_df))
+    print("-" * 80)
     return 0
 
 
-def check_utility(t_w_opt: np.ndarray, t_w_ben: np.ndarray, t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float, t_verbose: bool):
-    if t_verbose:
-        _w = np.array([t_w_opt, t_w_ben])
-        _mu_opt = t_w_opt.dot(t_mu)
-        _mu_ben = t_w_ben.dot(t_mu)
-        _sigma_opt = t_w_opt.dot(t_sigma).dot(t_w_opt)
-        _sigma_ben = t_w_ben.dot(t_sigma).dot(t_w_ben)
-        _uty_opt = _mu_opt - t_lbd * _sigma_opt / 2
-        _uty_ben = _mu_ben - t_lbd * _sigma_ben / 2
-        _res_df = pd.DataFrame({
-            "mu": {"opt": _mu_opt, "ben": _mu_ben},
-            "sigma": {"opt": _sigma_opt, "ben": _sigma_ben},
-            "uty": {"opt": _uty_opt, "ben": _uty_ben},
-        })
-        print(_res_df)
+def check_utility(t_w_opt: np.ndarray, t_w_ben: np.ndarray, t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: float):
+    _w = np.array([t_w_opt, t_w_ben])
+    _mu_opt = t_w_opt.dot(t_mu)
+    _mu_ben = t_w_ben.dot(t_mu)
+    _sigma_opt = t_w_opt.dot(t_sigma).dot(t_w_opt)
+    _sigma_ben = t_w_ben.dot(t_sigma).dot(t_w_ben)
+    _uty_opt = _mu_opt - t_lbd * _sigma_opt / 2
+    _uty_ben = _mu_ben - t_lbd * _sigma_ben / 2
+    _res_df = pd.DataFrame({
+        "mu": {"opt": _mu_opt, "ben": _mu_ben},
+        "sigma": {"opt": _sigma_opt, "ben": _sigma_ben},
+        "uty": {"opt": _uty_opt, "ben": _uty_ben},
+    })
+    print(_res_df)
     return 0
 
 
