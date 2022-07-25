@@ -569,16 +569,23 @@ def minimize_utility_con9_cvxpy(t_mu: np.ndarray, t_sigma: np.ndarray, t_lbd: fl
     return None, None
 
 
-def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_verbose: bool):
+def check_boundary(t_weight_df: pd.DataFrame, t_risk_factor_exposure: pd.DataFrame, t_revenue_factor_exposure: pd.DataFrame, t_verbose: bool):
     if t_verbose:
         print("-" * 80)
+        print("weight df:")
         print(t_weight_df)
         print("-" * 80)
+        print("weight df abs sum:")
         print(t_weight_df.abs().sum())
         print("-" * 80)
+        print("weight df sum:")
         print(t_weight_df.sum())
         print("-" * 80)
+        print("risk factor exposure:")
         print(t_risk_factor_exposure.dot(t_weight_df))
+        print("-" * 80)
+        print("revenue factor exposure:")
+        print(t_revenue_factor_exposure.dot(t_weight_df))
         print("-" * 80)
     return 0
 
