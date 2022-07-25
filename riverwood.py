@@ -350,7 +350,8 @@ class CPositionPlus(CPosition):
 # --- Class: Portfolio
 class CPortfolio(object):
     def __init__(self, t_pid: str, t_init_cash: float, t_cost_reservation: float, t_cost_rate: float,
-                 t_dir_pid: str, t_dir_pid_trades: str, t_dir_pid_positions: str):
+                 t_dir_pid: str, t_dir_pid_trades: str, t_dir_pid_positions: str,
+                 t_save_details: bool = True):
         """
 
         :param t_pid: portfolio id
@@ -380,6 +381,7 @@ class CPortfolio(object):
 
         # save nav
         self.m_nav_daily_snapshots = []
+        self.m_save_details: bool = t_save_details
         self.m_dir_pid: str = t_dir_pid
         self.m_dir_pid_trades: str = t_dir_pid_trades
         self.m_dir_pid_positions: str = t_dir_pid_positions
@@ -512,13 +514,14 @@ class CPortfolio(object):
         pos_df = pd.DataFrame(pos_data_list)
 
         # save to csv
-        pos_file = "{}.{}.positions.csv.gz".format(self.m_pid, self.m_update_date)
-        pos_path = os.path.join(self.m_dir_pid_positions, pos_file)
-        pos_df.to_csv(pos_path, index=False, float_format="%.6f", compression="gzip")
+        if self.m_save_details:
+            pos_file = "{}.{}.positions.csv.gz".format(self.m_pid, self.m_update_date)
+            pos_path = os.path.join(self.m_dir_pid_positions, pos_file)
+            pos_df.to_csv(pos_path, index=False, float_format="%.6f", compression="gzip")
         return 0
 
     def save_trades(self) -> int:
-        if self.m_realized_pnl_daily_df is not None:
+        if self.m_save_details and (self.m_realized_pnl_daily_df is not None):
             records_trades_file = "{}.{}.trades.csv.gz".format(self.m_pid, self.m_update_date)
             records_trades_path = os.path.join(self.m_dir_pid_trades, records_trades_file)
             self.m_realized_pnl_daily_df.to_csv(records_trades_path, index=False, float_format="%.6f", compression="gzip")
