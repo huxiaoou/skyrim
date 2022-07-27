@@ -12,7 +12,7 @@ matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break do
 matplotlib.style.use("Solarize_Light2")
 
 
-def check_and_mkdir(t_path:str):
+def check_and_mkdir(t_path: str):
     if not os.path.exists(t_path):
         os.mkdir(t_path)
         return 1
@@ -20,12 +20,13 @@ def check_and_mkdir(t_path:str):
         return 0
 
 
-def remove_files_in_the_dir(t_path:str):
+def remove_files_in_the_dir(t_path: str):
     for f in os.listdir(t_path):
         os.remove(os.path.join(t_path, f))
     return 0
 
-def check_and_remove_tree(t_path:str):
+
+def check_and_remove_tree(t_path: str):
     if os.path.exists(t_path):
         shutil.rmtree(t_path)
     return 0
