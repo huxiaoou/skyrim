@@ -134,6 +134,37 @@ class CManagerSignalSHP(CManagerSignalBase):
         return t_opt_weight_df
 
 
+class CManagerSignalSHPADJ(CManagerSignalBase):
+    def __init__(self, t_mother_universe: list, t_available_universe_dir: str,
+                 t_factors_by_tm_dir: str, t_factor_lbl: str,
+                 t_single_hold_prop: float, t_adj_factor_lbl: str, t_mgr_md: CManagerMarketData,
+                 t_is_trend_follow: bool = True):
+        super(CManagerSignalSHPADJ, self).__init__(
+            t_mother_universe, t_available_universe_dir, t_factors_by_tm_dir, t_factor_lbl, t_mgr_md, t_is_trend_follow)
+        self.m_single_hold_prop: float = t_single_hold_prop
+        self.m_adj_factor_lbl: str = t_adj_factor_lbl
+
+    def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
+        opt_universe_size = len(t_opt_weight_df)
+        if opt_universe_size > 1:
+            _k0 = max(min(int(np.ceil(opt_universe_size * self.m_single_hold_prop)), int(opt_universe_size / 2)), 1)
+            _k1 = opt_universe_size - 2 * _k0
+            if t_type == 1:
+                # long only
+                t_opt_weight_df["opt"] = t_opt_weight_df[self.m_adj_factor_lbl] * np.array([1] * _k0 + [0] * (_k1 + _k0))
+            elif t_type == 2:
+                # short only
+                t_opt_weight_df["opt"] = t_opt_weight_df[self.m_adj_factor_lbl] * np.array([0] * (_k0 + _k1) + [-1] * _k0)
+            else:
+                # both
+                t_opt_weight_df["opt"] = t_opt_weight_df[self.m_adj_factor_lbl] * np.array([1] * _k0 + [0] * _k1 + [-1] * _k0)
+            _opt_wgt_abs_sum = t_opt_weight_df["opt"].abs().sum()
+            t_opt_weight_df["opt"] = t_opt_weight_df["opt"] / _opt_wgt_abs_sum
+        else:
+            t_opt_weight_df["opt"] = 0
+        return t_opt_weight_df
+
+
 class CManagerSignalTS(CManagerSignalBase):
     def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
         if t_type == 1:
