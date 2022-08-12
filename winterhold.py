@@ -171,6 +171,8 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
                t_line_width: float = 2,
                t_primary_colormap: Union[None, str] = "jet", t_secondary_colormap: Union[None, str] = "jet",
                t_primary_style="-", t_secondary_style="-.",
+               t_primary_alpha: float = 1.0, t_secondary_alpha: float = 1.0,
+               t_primary_hlines: tuple = (), t_secondary_hlines: tuple = (),
                t_primary_ylim: tuple = (None, None), t_secondary_ylim: tuple = (None, None),
                t_legend_loc: str = "upper left",
                t_xtick_span: int = 1, t_xlabel: str = "",
@@ -190,9 +192,13 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     :param t_secondary_colormap:
     :param t_primary_style:
     :param t_secondary_style:
-    :param t_legend_loc:
+    :param t_primary_alpha:
+    :param t_secondary_alpha:
     :param t_primary_ylim:
     :param t_secondary_ylim:
+    :param t_primary_hlines:
+    :param t_secondary_hlines:
+    :param t_legend_loc:
     :param t_xtick_span:
     :param t_xlabel:
     :param t_tick_label_size:
@@ -203,8 +209,12 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     """
     fig0, ax0 = plt.subplots(figsize=(16, 9))
     ax1 = ax0.twinx()
-    t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap, lw=t_line_width, style=t_primary_style, legend=None)
-    t_plot_df[t_secondary_cols].plot(ax=ax1, kind=t_secondary_kind, colormap=t_secondary_colormap, lw=t_line_width, style=t_secondary_style)
+    t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap,
+                                   lw=t_line_width, style=t_primary_style, alpha=t_primary_alpha, legend=None)
+    t_plot_df[t_secondary_cols].plot(ax=ax1, kind=t_secondary_kind, colormap=t_secondary_colormap,
+                                     lw=t_line_width, style=t_secondary_style, alpha=t_secondary_alpha)
+    ax0.hlines(t_primary_hlines, xmin=0, xmax=len(t_plot_df))
+    ax1.hlines(t_secondary_hlines, xmin=0, xmax=len(t_plot_df))
 
     # merge legends
     lines0, labels0 = ax0.get_legend_handles_labels()
