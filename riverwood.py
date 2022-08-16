@@ -37,7 +37,7 @@ class CManagerMarketData(object):
 class CManagerSignalBase(object):
     def __init__(self, t_mother_universe: list, t_available_universe_dir: str,
                  t_factors_by_tm_dir: str, t_factor_lbl: str, t_mgr_md: CManagerMarketData,
-                 t_is_trend_follow: bool = True):
+                 t_is_trend_follow: bool = True, t_print_details: bool = True):
         """
 
         :param t_mother_universe: List of all instruments, instrument not in this list can not be traded
@@ -47,6 +47,7 @@ class CManagerSignalBase(object):
         :param t_mgr_md:
         :param t_is_trend_follow: if true, program would long instrument with large signal values and short instrument with small values
                                   else program would long instrument with small signal values and short instrument with large values
+        :param t_print_details:
         """
 
         self.m_mother_universe_set: set = set(t_mother_universe)
@@ -55,6 +56,7 @@ class CManagerSignalBase(object):
         self.m_factor_lbl: str = t_factor_lbl
         self.m_mgr_md: CManagerMarketData = t_mgr_md
         self.m_is_trend_follow: bool = t_is_trend_follow
+        self.m_print_details: bool = t_print_details
 
     def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int) -> pd.DataFrame:
         pass
@@ -98,7 +100,7 @@ class CManagerSignalBase(object):
         opt_weight_df["weight"] = opt_weight_df["opt"].abs()
         opt_weight_df = opt_weight_df.loc[opt_weight_df["weight"] > 0]
 
-        if len(opt_weight_df) < 2:
+        if (len(opt_weight_df) < 2) and self.m_print_details:
             print("Warning! Not enough instruments in universe at sig_date = {}, exe_date = {}".format(t_sig_date, t_exe_date))
             print(available_universe_df)
             print(factor_df)
