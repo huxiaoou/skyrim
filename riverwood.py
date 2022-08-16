@@ -182,6 +182,13 @@ class CManagerSignalTS(CManagerSignalBase):
 
 class CManagerSignalOpt(CManagerSignalBase):
     def cal_weight(self, t_opt_weight_df: pd.DataFrame, t_type: int):
+        """
+
+        :param t_opt_weight_df: factor_lbl in t_opt_weight_df is the result of some optimization procedure, each element of
+                                can be negative or positive. the sum of the absolute value of each element may not equal 1.
+        :param t_type:
+        :return:
+        """
         if t_type == 1:
             # long only
             t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl].map(lambda z: max(z, 0))
@@ -193,6 +200,11 @@ class CManagerSignalOpt(CManagerSignalBase):
             t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl]
         filter_minimum_wgt = t_opt_weight_df["opt"].abs() <= 1e-3
         t_opt_weight_df.loc[filter_minimum_wgt, "opt"] = 0
+        wgt_abs_sum = t_opt_weight_df["opt"].abs().sum()
+        if wgt_abs_sum > 1e-4:
+            t_opt_weight_df["opt"] = t_opt_weight_df["opt"] / wgt_abs_sum
+        else:
+            t_opt_weight_df["opt"] = 0
         return t_opt_weight_df
 
 
