@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -30,6 +31,20 @@ def check_and_remove_tree(t_path: str):
     if os.path.exists(t_path):
         shutil.rmtree(t_path)
     return 0
+
+
+def get_mix_string_len(t_mix_string: str, t_expected_len: int):
+    """
+
+    :param t_mix_string: example "食品ETF09"
+    :param t_expected_len: length of expected output string
+    :return: "{:ks}".format(t_mix_string) would occupy t_expected_len characters when print,
+             which will make t_mix_string aligned with pure English string
+    """
+    chs_string = re.sub("[0-9a-zA-Z]", "", t_mix_string)
+    chs_string_len = len(chs_string)
+    k = max(t_expected_len - chs_string_len, len(t_mix_string) + chs_string_len)
+    return k
 
 
 def timer(func):
