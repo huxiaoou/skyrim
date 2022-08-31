@@ -200,5 +200,5 @@ def convert_contract_id_to_wind_format(t_contract_id: str, t_instru_info_table: 
     """
 
     _instrument_id = parse_instrument_from_contract(t_contract_id=t_contract_id)
-    _exchange_id = t_instru_info_table.get_exchangeId(t_instrument_id=_instrument_id)
+    _exchange_id = t_instru_info_table.get_windCode(t_instrument_id=_instrument_id).split(".")[1]
     return t_contract_id.upper() + "." + _exchange_id[0:3]
