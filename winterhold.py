@@ -41,7 +41,8 @@ def get_mix_string_len(t_mix_string: str, t_expected_len: int):
     :return: "{:ks}".format(t_mix_string) would occupy t_expected_len characters when print,
              which will make t_mix_string aligned with pure English string
     """
-    chs_string = re.sub("[0-9a-zA-Z]", "", t_mix_string)
+    # chs_string = re.sub("[0-9a-zA-Z]", "", t_mix_string)
+    chs_string = re.sub("[\\da-zA-Z]", "", t_mix_string)
     chs_string_len = len(chs_string)
     k = max(t_expected_len - chs_string_len, len(t_mix_string) + chs_string_len)
     return k
@@ -72,6 +73,7 @@ def date_format_converter_10_to_08(t_date: str):
 
 
 def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2,
+               t_fig_size: tuple = (16, 9),
                t_colormap: Union[None, str] = None,
                t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
@@ -84,6 +86,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     :param t_fig_name: the name of the file to save the figure
     :param t_save_dir: the directory where the file is saved
     :param t_line_width: line width
+    :param t_fig_size: ratio of figure's length to width
     :param t_colormap: colormap to be used to change the line color, default is None, frequently used values are:
                        ["jet", "Paired", "RdBu", "spring", "summer", "autumn", "winter"]
     :param t_xtick_count: the number of ticks to be labeled on x-axis
@@ -99,7 +102,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
                         ["pdf", "jpg"]
     :return:
     """
-    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    fig0, ax0 = plt.subplots(figsize=t_fig_size)
     t_plot_df.plot(ax=ax0, lw=t_line_width, colormap=t_colormap)
     xticks = np.arange(0, len(t_plot_df), int(len(t_plot_df) / t_xtick_count))
     xticklabels = t_plot_df.index[xticks]
@@ -124,9 +127,10 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
 
 
 def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
+              t_fig_size: tuple = (16, 9),
               t_tick_label_rotation: int = 0,
               t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf"):
-    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    fig0, ax0 = plt.subplots(figsize=t_fig_size)
     sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
     ax0.tick_params(axis="y", rotation=t_tick_label_rotation)
     fig0_name = t_fig_name + "." + t_save_type
@@ -137,6 +141,7 @@ def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
 
 
 def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_dir: str = ".",
+             t_fig_size: tuple = (16, 9),
              t_colormap: Union[None, str] = "jet",
              t_xtick_span: int = 1, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
              t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
@@ -150,6 +155,7 @@ def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_di
                       False: best designed for small obs, i.e., all the row labels can be plotted
     :param t_fig_name:
     :param t_save_dir:
+    :param t_fig_size:
     :param t_colormap:
     :param t_xtick_span:
     :param t_xlabel:
@@ -161,7 +167,7 @@ def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_di
     :param t_save_type:
     :return:
     """
-    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    fig0, ax0 = plt.subplots(figsize=t_fig_size)
     t_bar_df.plot(ax=ax0, kind="bar", stacked=t_stacked, colormap=t_colormap)
     n_ticks = len(t_bar_df)
     xticks = np.arange(0, n_ticks, t_xtick_span)
@@ -183,6 +189,7 @@ def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_di
 def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: list,
                t_primary_kind: str, t_secondary_kind: str,
                t_fig_name: str, t_save_dir: str = ".",
+               t_fig_size: tuple = (16, 9),
                t_line_width: float = 2,
                t_primary_colormap: Union[None, str] = "jet", t_secondary_colormap: Union[None, str] = "jet",
                t_primary_style="-", t_secondary_style="-.",
@@ -202,6 +209,7 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     :param t_secondary_kind: plot kind for secondary(right-y) axis, available options = ["bar", "barh", "line"]
     :param t_fig_name:
     :param t_save_dir:
+    :param t_fig_size:
     :param t_line_width:
     :param t_primary_colormap:
     :param t_secondary_colormap:
@@ -222,7 +230,7 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     :param t_save_type:
     :return:
     """
-    fig0, ax0 = plt.subplots(figsize=(16, 9))
+    fig0, ax0 = plt.subplots(figsize=t_fig_size)
     ax1 = ax0.twinx()
     t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap,
                                    lw=t_line_width, style=t_primary_style, alpha=t_primary_alpha, legend=None)
