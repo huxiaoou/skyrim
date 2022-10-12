@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 import sqlite3 as sql3
 from typing import Dict, List
