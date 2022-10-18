@@ -8,6 +8,12 @@ import datetime as dt
 
 class CTable(object):
     def __init__(self, t_table_name: str, t_primary_keys: Dict[str, str], t_value_columns: Dict[str, str]):
+        """
+
+        :param t_table_name:
+        :param t_primary_keys: {"key_name":"key_datatype"}
+        :param t_value_columns: {"value_name":"value_datatype"}
+        """
         self.m_table_name: str = t_table_name
         self.m_primary_keys: Dict[str, str] = t_primary_keys
         self.m_value_columns: Dict[str, str] = t_value_columns
@@ -17,7 +23,9 @@ class CTable(object):
         # cmd for update
         str_columns = ", ".join(self.m_vars)
         str_args = ", ".join(["?"] * self.m_vars_n)
-        self.m_cmd_sql_update_template = "INSERT OR REPLACE INTO {} (" + str_columns + ") values(" + str_args + ")"
+        self.m_cmd_sql_update_template = "INSERT OR REPLACE INTO {} ({}) values({})".format(
+            self.m_table_name, str_columns, str_args
+        )
 
 
 class CLib1Tab1(object):
@@ -113,7 +121,7 @@ class CManagerLibWriter(CManagerLibReader):
         :param t_using_index: whether using index as a data column
         :return:
         """
-        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template.format(t_table_name)
+        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template
         for data_cell in t_update_df.itertuples(index=t_using_index):  # itertuples is much faster than iterrows
             self.m_cursor.execute(cmd_sql_update, data_cell)
         return 0
@@ -129,7 +137,7 @@ class CManagerLibWriterByDate(CManagerLibWriter):
         :param t_using_index: whether using index as a data column
         :return:
         """
-        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template.format(t_table_name)
+        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template
         for data_cell in t_update_df.itertuples(index=t_using_index):  # itertuples is much faster than iterrows
             self.m_cursor.execute(cmd_sql_update, (t_date,) + data_cell)
         return 0
