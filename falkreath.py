@@ -59,6 +59,13 @@ class CMangerLibBase(object):
 
 
 class CManagerLibReader(CMangerLibBase):
+    def read(self, t_table_name: str, t_value_columns: List[str]):
+        str_value_columns = ", ".join(t_value_columns)
+        cmd_sql_for_inquiry = "SELECT {} FROM {}".format(str_value_columns, t_table_name)
+        rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
+        t_df = pd.DataFrame(data=rows, columns=t_value_columns)
+        return t_df
+
     def read_by_date(self, t_table_name: str, t_trade_date: str, t_value_columns: List[str]):
         str_value_columns = ", ".join(t_value_columns)
         cmd_sql_for_inquiry = "SELECT {} FROM {} where trade_date = {}".format(str_value_columns, t_table_name, t_trade_date)
