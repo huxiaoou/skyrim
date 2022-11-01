@@ -259,3 +259,189 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     plt.close(fig0)
 
     return 0
+
+
+def plot_single_line_piecewise(t_ax: matplotlib.axes.Axes, t_plot_df: pd.DataFrame,
+                               t_line_val_label: str, t_line_tag_label: str,
+                               t_line_style: str, t_piecewise_color_map: dict, t_line_width: float,
+                               t_legend_loc: str):
+    ticks_n = len(t_plot_df)
+    line_val_srs = t_plot_df[t_line_val_label]
+    line_tag_srs = t_plot_df[t_line_tag_label]
+
+    t_ax.plot(np.arange(ticks_n), line_val_srs,
+              color="k", ls=t_line_style, lw=t_line_width, alpha=0.5,
+              label=t_line_val_label)
+    t_ax.legend(loc=t_legend_loc)
+
+    piece_iloc_bgn = 0
+    while piece_iloc_bgn <= (ticks_n - 2):
+        i = 0
+        piece_tag = line_tag_srs[piece_iloc_bgn + 1]
+        while True:
+            i += 1
+            piece_iloc_stp = piece_iloc_bgn + i
+            if piece_iloc_stp >= ticks_n:
+                break
+            if line_tag_srs[piece_iloc_stp] != piece_tag:
+                break
+
+        piece_x = range(piece_iloc_bgn, piece_iloc_stp)
+        piece_y = line_val_srs.iloc[piece_iloc_bgn:piece_iloc_stp]
+        t_ax.plot(piece_x, piece_y,
+                  color=t_piecewise_color_map[piece_tag],
+                  ls=t_line_style, lw=t_line_width)
+
+        # sub_plot_df = t_plot_df[[t_line_val_label, t_line_tag_label]].iloc[piece_iloc_bgn:piece_iloc_stp]
+        # print("-" * 12)
+        # print(sub_plot_df)
+
+        # for next loop
+        piece_iloc_bgn = piece_iloc_stp - 1
+
+    return 0
+
+
+def plot_lines_piecewise(t_plot_df: pd.DataFrame,
+                         t_piecewise_lines_list: list,
+                         t_piecewise_color_map: dict,
+                         t_fig_size: tuple = (16, 9),
+                         t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None),
+                         t_tick_label_size: int = 12, t_tick_label_rotation: int = 0, t_ax_title: str = "",
+                         t_legend_loc: str = "upper left",
+                         t_fig_name: str = "test_example", t_save_dir: str = ".", t_save_format: str = "pdf"):
+    """
+
+    :param t_plot_df: date string as index
+    :param t_piecewise_lines_list: each element of this list has format =("line_val_label", "line_tag_lag", "line_style", "line_width")
+
+                                   LINESTYLES
+                                   Simple linestyles can be defined using the strings "solid", "dotted", "dashed" or "dashdot". More
+                                   refined control can be achieved by providing a dash tuple (offset, (on_off_seq)).
+                                   For example, (0, (3, 10, 1, 15)) means (3pt line, 10pt space, 1pt line, 15pt space) with no offset,
+                                   while (5, (10, 3)), means (10pt line, 3pt space), but skip the first 5pt line.
+
+                                   Available Options
+                                   linestyle_str = [
+                                         ('solid', 'solid'),      # Same as (0, ()) or '-'
+                                         ('dotted', 'dotted'),    # Same as (0, (1, 1)) or ':'
+                                         ('dashed', 'dashed'),    # Same as '--'
+                                         ('dashdot', 'dashdot')]  # Same as '-.'
+
+                                   linestyle_tuple = [
+                                         ('loosely dotted',        (0, (1, 10))),
+                                         ('dotted',                (0, (1, 1))),
+                                         ('densely dotted',        (0, (1, 1))),
+                                         ('long dash with offset', (5, (10, 3))),
+                                         ('loosely dashed',        (0, (5, 10))),
+                                         ('dashed',                (0, (5, 5))),
+                                         ('densely dashed',        (0, (5, 1))),
+
+                                         ('loosely dashdotted',    (0, (3, 10, 1, 10))),
+                                         ('dashdotted',            (0, (3, 5, 1, 5))),
+                                         ('densely dashdotted',    (0, (3, 1, 1, 1))),
+
+                                         ('dashdotdotted',         (0, (3, 5, 1, 5, 1, 5))),
+                                         ('loosely dashdotdotted', (0, (3, 10, 1, 10, 1, 10))),
+                                         ('densely dashdotdotted', (0, (3, 1, 1, 1, 1, 1)))]
+
+    :param t_piecewise_color_map: a dictionary describe line style for each segment.
+                                     and unique values of t_piecewise_tag columns must
+                                     be a subset of the keys of this dict.
+    :param t_fig_name:
+    :param t_fig_size: inches
+    :param t_xtick_count:
+    :param t_xlabel:
+    :param t_ylim:
+    :param t_tick_label_size:
+    :param t_tick_label_rotation:
+    :param t_ax_title: the title of the ax
+    :param t_legend_loc: location of legend
+    :param t_save_dir:
+    :param t_save_format:
+
+    :return:
+    """
+
+    fig0, ax0 = plt.subplots(figsize=t_fig_size)
+
+    for (line_val_label, line_tag_label, line_style, line_width) in t_piecewise_lines_list:
+        plot_single_line_piecewise(
+            t_ax=ax0, t_plot_df=t_plot_df,
+            t_line_val_label=line_val_label,
+            t_line_tag_label=line_tag_label,
+            t_line_style=line_style,
+            t_piecewise_color_map=t_piecewise_color_map,
+            t_line_width=line_width,
+            t_legend_loc=t_legend_loc,
+        )
+
+    # shared axis settings
+    xticks = np.arange(0, len(t_plot_df), int(len(t_plot_df) / t_xtick_count))
+    xticklabels = t_plot_df.index[xticks]
+    ax0.set_xticks(xticks)
+    ax0.set_xticklabels(xticklabels)
+    ax0.set_xlabel(t_xlabel)
+    ax0.set_ylim(t_ylim)
+    ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
+    ax0.set_title(t_ax_title)
+
+    save_name = t_fig_name + "." + t_save_format
+    save_path = os.path.join(t_save_dir, save_name)
+    fig0.savefig(save_path)
+    plt.close(fig0)
+
+    return 0
+
+
+if __name__ == "__main__":
+    # for mp_style in mps.available:
+    #     print(mp_style)
+    import scipy.stats as sps
+
+    n = 100
+    mu, sd = 0.001, 0.02
+    x0 = sps.norm.rvs(size=n, loc=mu, scale=sd)
+    x1 = sps.norm.rvs(size=n, loc=mu, scale=sd)
+    x2 = sps.norm.rvs(size=n, loc=mu, scale=sd)
+    x3 = sps.norm.rvs(size=n, loc=mu, scale=sd)
+    z0 = np.cumprod(1 + x0)
+    z1 = np.cumprod(1 + x1)
+    z2 = np.cumprod(1 + x2)
+    z3 = np.cumprod(1 + x3)
+    ct0 = [1 if _ > (mu + sd) else (0 if _ > (mu - sd) else -1) for _ in x0]
+    ct1 = [1 if _ > (mu + sd) else (0 if _ > (mu - sd) else -1) for _ in x1]
+    ct2 = [1 if _ > (mu + 0 * sd) else (0 if _ > (mu - 0 * sd) else -1) for _ in x2]
+    ct3 = [1 if _ > (mu + 0 * sd) else (0 if _ > (mu - 0 * sd) else -1) for _ in x3]
+
+    # z = [99, 98, 100]
+    # ct = [0, 1, 0]
+
+    df = pd.DataFrame({
+        "z0": z0,
+        "z1": z1,
+        "z2": z2,
+        "z3": z3,
+        "ct0": ct0,
+        "ct1": ct1,
+        "ct2": ct2,
+        "ct3": ct3,
+    }, index=["2022{:04d}".format(_) for _ in range(len(z0))])
+
+    plot_lines_piecewise(
+        t_plot_df=df,
+        t_piecewise_lines_list=[
+            # ("z0", "ct0", (0, (2, 6)), 2),
+            # ("z1", "ct1", (0, (4, 4, 8, 8)), 2),
+            # ("z2", "ct2", (0, (6, 6, 18, 18)), 2),
+            ("z0", "ct0", "-", 2),
+            ("z1", "ct1", "-.", 2),
+            ("z2", "ct2", ":", 2),
+            ("z3", "ct3", "--", 2),
+        ],
+        t_piecewise_color_map={0: "y", 1: "r", -1: "g"},
+        t_save_dir=os.path.join("E:\\", "tmp")
+    )
+
+    print("-" * 12)
+    print(df)
