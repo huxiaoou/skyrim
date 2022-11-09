@@ -55,6 +55,20 @@ def portfolio_risk_budget(t_w: np.ndarray, t_sigma: np.ndarray, t_rb: np.ndarray
     return 2 * (_p ** 2) * np.var(_x, ddof=0)
 
 
+def portfolio_risk_budget_with_return(t_w: np.ndarray, t_mu: np.ndarray, t_sigma: np.ndarray, t_rb: np.ndarray, t_verbose: bool) -> float:
+    _p, _ = t_sigma.shape
+    _s = np.sqrt(portfolio_variance(t_w, t_sigma))
+    _mrc = t_sigma.dot(t_w) / _s  # marginal risk cost
+    _rc = t_w * _mrc  # risk cost
+    _x = _rc / t_rb
+    if t_verbose:
+        print("RB  = {}".format(t_rb))
+        print("MRC = {}".format(_mrc))
+        print("RC  = {}".format(_rc))
+        print("X   = {}".format(_x))
+    return - t_w @ t_mu + np.var(_x, ddof=0) * 10000
+
+
 # -------------------------------- Optimize Algorithm --------------------------------
 # --- type 0: minimum variance
 # target: min_{w} wSw  with w1 = 1
@@ -660,7 +674,7 @@ def minimize_risk_budget_con(t_sigma: np.ndarray, t_rb: np.ndarray, t_verbose) -
         x0=np.ones(_p) / _p,
         args=(t_sigma, t_rb, t_verbose),
         bounds=[(0, 1)] * _p,
-        constraints={"type": "eq", "fun": lambda z: z.sum() - 1},
+        constraints={"type": "eq", "fun": lambda z: z.sum() - 1},  # leverage is not allowed
     )
     if _res.success:
         return _res.x, _res.fun
@@ -684,7 +698,64 @@ def minimize_risk_budget_con2(t_sigma: np.ndarray, t_rb: np.ndarray, t_verbose) 
         x0=np.ones(_p) / _p,
         args=(t_sigma, t_rb, t_verbose),
         bounds=[(-1, 1)] * _p,  # allow short
-        constraints=scipy.optimize.LinearConstraint(np.ones(_p), -1, 1),  # control total market value
+        constraints=scipy.optimize.LinearConstraint(np.ones(_p), -1, 1),  # control total market value, leverage is allowed
+    )
+    if _res.success:
+        return _res.x, _res.fun
+    else:
+        print("ERROR! Optimizer exits with a failure")
+        print("Detailed Description: {}".format(_res.message))
+        return None, None
+
+
+def minimize_risk_budget_con3(t_sigma: np.ndarray, t_rb: np.ndarray,
+                              t_wgt_abs_sum_lower_bound: float = 0.50,
+                              t_verbose: bool = False) -> (np.ndarray, float):
+    """
+    :param t_sigma: the covariance of available assets
+    :param t_rb: risk budget
+    :param t_wgt_abs_sum_lower_bound: lower bound of sum of abs value of the weight
+    :param t_verbose: whether to print iteration details
+    :return:
+    """
+    _p, _ = t_sigma.shape
+    # noinspection PyTypeChecker
+    _res = minimize(
+        fun=portfolio_risk_budget,
+        x0=np.ones(_p) / _p,
+        args=(t_sigma, t_rb, t_verbose),
+        bounds=[(-1, 1)] * _p,  # allow short
+        constraints=scipy.optimize.NonlinearConstraint(lambda _: np.abs(_).sum(), t_wgt_abs_sum_lower_bound, 1),  # sum(abs(w)) <= 1, leverage is not allowed
+    )
+    if _res.success:
+        return _res.x, _res.fun
+    else:
+        print("ERROR! Optimizer exits with a failure")
+        print("Detailed Description: {}".format(_res.message))
+        return None, None
+
+
+def minimize_risk_budget_con4(t_mu: np.ndarray, t_sigma: np.ndarray, t_rb: np.ndarray,
+                              t_wgt_abs_sum_lower_bound: float = 0.50, t_max_iter: int = 50000,
+                              t_verbose: bool = False) -> (np.ndarray, float):
+    """
+    :param t_sigma: the covariance of available assets
+    :param t_mu: the expected return of available assets
+    :param t_rb: risk budget
+    :param t_wgt_abs_sum_lower_bound: lower bound of sum of abs value of the weight
+    :param t_max_iter:
+    :param t_verbose: whether to print iteration details
+    :return:
+    """
+    _p, _ = t_sigma.shape
+    # noinspection PyTypeChecker
+    _res = minimize(
+        fun=portfolio_risk_budget_with_return,
+        x0=np.ones(_p) / _p,
+        args=(t_mu, t_sigma, t_rb, t_verbose),
+        bounds=[(-1, 1)] * _p,  # allow short
+        constraints=scipy.optimize.NonlinearConstraint(lambda _: np.abs(_).sum(), t_wgt_abs_sum_lower_bound, 1),  # sum(abs(w)) <= 1, leverage is not allowed
+        options={"maxiter": t_max_iter},
     )
     if _res.success:
         return _res.x, _res.fun
