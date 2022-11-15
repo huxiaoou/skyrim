@@ -66,7 +66,12 @@ def portfolio_risk_budget_with_return(t_w: np.ndarray, t_mu: np.ndarray, t_sigma
         print("MRC = {}".format(_mrc))
         print("RC  = {}".format(_rc))
         print("X   = {}".format(_x))
-    return - t_w @ t_mu + np.var(_x, ddof=0) * 10000
+    _m = t_w @ t_mu
+    _v = np.var(_x, ddof=0) * 1000
+    # print("m   = {:.6f}".format(_m))
+    # print("v   = {:.6f}".format(_v))
+    # print("\n")
+    return - _m + _v
 
 
 # -------------------------------- Optimize Algorithm --------------------------------
@@ -709,7 +714,7 @@ def minimize_risk_budget_con2(t_sigma: np.ndarray, t_rb: np.ndarray, t_verbose) 
 
 
 def minimize_risk_budget_con3(t_sigma: np.ndarray, t_rb: np.ndarray,
-                              t_wgt_abs_sum_lower_bound: float = 0.50,
+                              t_wgt_abs_sum_lower_bound: float = 1.0,
                               t_verbose: bool = False) -> (np.ndarray, float):
     """
     :param t_sigma: the covariance of available assets
@@ -725,7 +730,7 @@ def minimize_risk_budget_con3(t_sigma: np.ndarray, t_rb: np.ndarray,
         x0=np.ones(_p) / _p,
         args=(t_sigma, t_rb, t_verbose),
         bounds=[(-1, 1)] * _p,  # allow short
-        constraints=scipy.optimize.NonlinearConstraint(lambda _: np.abs(_).sum(), t_wgt_abs_sum_lower_bound, 1),  # sum(abs(w)) <= 1, leverage is not allowed
+        constraints=scipy.optimize.NonlinearConstraint(lambda _: np.abs(_).sum(), t_wgt_abs_sum_lower_bound, 1),  # sum(abs(w)) == 1, leverage is not allowed
     )
     if _res.success:
         return _res.x, _res.fun
@@ -736,7 +741,7 @@ def minimize_risk_budget_con3(t_sigma: np.ndarray, t_rb: np.ndarray,
 
 
 def minimize_risk_budget_con4(t_mu: np.ndarray, t_sigma: np.ndarray, t_rb: np.ndarray,
-                              t_wgt_abs_sum_lower_bound: float = 0.50, t_max_iter: int = 50000,
+                              t_wgt_abs_sum_lower_bound: float = 1.0, t_max_iter: int = 50000,
                               t_verbose: bool = False) -> (np.ndarray, float):
     """
     :param t_sigma: the covariance of available assets
