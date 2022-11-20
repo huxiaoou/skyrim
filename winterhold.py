@@ -75,7 +75,8 @@ def date_format_converter_10_to_08(t_date: str):
 def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", t_line_width: float = 2,
                t_fig_size: tuple = (16, 9),
                t_colormap: Union[None, str] = None,
-               t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
+               t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None),
+               t_legend_loc="upper left", t_legend_fontsize: int = 12,
                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                t_vlines_index: list = None,
                t_ax_title: str = "", t_save_type: str = "pdf"
@@ -94,6 +95,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     :param t_ylim: plot limit for y-axis, default is (None, None), which means use limit automatically chose by Matplotlib
     :param t_legend_loc: the location of legend, frequently used values are:
                          ["best", "upper left", "upper right"]
+    :param t_legend_fontsize:
     :param t_tick_label_size: the size of the tick labels
     :param t_tick_label_rotation: the rotation of the tick labels, 0 = norm, 90 = fonts are rotated 90 degree counter-clockwise
     :param t_vlines_index: a list of indexes of vertical lines
@@ -116,7 +118,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
             ymin=ax0.get_ylim()[0], ymax=ax0.get_ylim()[1],
             colors="r", linestyles="dashed"
         )
-    ax0.legend(loc=t_legend_loc)
+    ax0.legend(loc=t_legend_loc, fontsize=t_legend_fontsize)
     ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
     ax0.set_title(t_ax_title)
     fig0_name = t_fig_name + "." + t_save_type
