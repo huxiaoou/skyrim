@@ -107,27 +107,31 @@ class CManagerSignalBase(object):
         # --- selected/optimized universe
         opt_universe = list(self.m_mother_universe_set.intersection(available_universe_set).intersection(factor_universe_set))
         opt_weight_df = factor_df.loc[opt_universe]
-        opt_weight_df = opt_weight_df.reset_index()
-        opt_weight_df = opt_weight_df.sort_values(by=[self.m_factor_lbl, "instrument"], ascending=[not self.m_is_trend_follow, True])
 
-        # --- cal weight
-        opt_weight_df = self.cal_weight(t_opt_weight_df=opt_weight_df, t_type=t_type)
+        if len(opt_weight_df) > 0:
+            opt_weight_df = opt_weight_df.reset_index()
+            opt_weight_df = opt_weight_df.sort_values(by=[self.m_factor_lbl, "instrument"], ascending=[not self.m_is_trend_follow, True])
 
-        # --- reformat
-        opt_weight_df["contract"] = opt_weight_df["instrument"].map(
-            lambda z: self.m_mgr_md.inquiry_major_contract(z, t_exe_date))
-        opt_weight_df["price"] = opt_weight_df[["instrument", "contract"]].apply(
-            lambda z: self.m_mgr_md.inquiry_price_at_date(z["contract"], z["instrument"], t_exe_date), axis=1)
-        opt_weight_df["direction"] = opt_weight_df["opt"].map(lambda z: int(np.sign(z)))
-        opt_weight_df["weight"] = opt_weight_df["opt"].abs()
-        opt_weight_df = opt_weight_df.loc[opt_weight_df["weight"] > 0]
+            # --- cal weight
+            opt_weight_df = self.cal_weight(t_opt_weight_df=opt_weight_df, t_type=t_type)
 
-        if (len(opt_weight_df) < 2) and self.m_print_details:
-            print("Warning! Not enough instruments in universe at sig_date = {}, exe_date = {}".format(t_sig_date, t_exe_date))
-            print(available_universe_df)
-            print(factor_df)
+            # --- reformat
+            opt_weight_df["contract"] = opt_weight_df["instrument"].map(
+                lambda z: self.m_mgr_md.inquiry_major_contract(z, t_exe_date))
+            opt_weight_df["price"] = opt_weight_df[["instrument", "contract"]].apply(
+                lambda z: self.m_mgr_md.inquiry_price_at_date(z["contract"], z["instrument"], t_exe_date), axis=1)
+            opt_weight_df["direction"] = opt_weight_df["opt"].map(lambda z: int(np.sign(z)))
+            opt_weight_df["weight"] = opt_weight_df["opt"].abs()
+            opt_weight_df = opt_weight_df.loc[opt_weight_df["weight"] > 0]
 
-        return opt_weight_df[["contract", "price", "direction", "weight"]]
+            if (len(opt_weight_df) < 2) and self.m_print_details:
+                print("Warning! Not enough instruments in universe at sig_date = {}, exe_date = {}".format(t_sig_date, t_exe_date))
+                print(available_universe_df)
+                print(factor_df)
+
+            return opt_weight_df[["contract", "price", "direction", "weight"]]
+        else:
+            return pd.DataFrame(data=None, columns=["contract", "price", "direction", "weight"])
 
 
 class CManagerSignalOpt(CManagerSignalBase):
