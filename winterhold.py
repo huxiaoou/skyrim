@@ -79,6 +79,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
                t_legend_loc="upper left", t_legend_fontsize: int = 12,
                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                t_vlines_index: list = None,
+               t_hlines_value: list = None,
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
     """
@@ -99,6 +100,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     :param t_tick_label_size: the size of the tick labels
     :param t_tick_label_rotation: the rotation of the tick labels, 0 = norm, 90 = fonts are rotated 90 degree counter-clockwise
     :param t_vlines_index: a list of indexes of vertical lines
+    :param t_hlines_value: a list of values of vertical lines
     :param t_ax_title: the title of the ax
     :param t_save_type: the type of file, frequently used values are:
                         ["pdf", "jpg"]
@@ -112,12 +114,19 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     ax0.set_xticklabels(xticklabels)
     ax0.set_xlabel(t_xlabel)
     ax0.set_ylim(t_ylim)
-    if t_vlines_index is not None:
+    if t_vlines_index:
         ax0.vlines(
             [t_plot_df.index.get_loc(z) for z in t_vlines_index],
             ymin=ax0.get_ylim()[0], ymax=ax0.get_ylim()[1],
             colors="r", linestyles="dashed"
         )
+    if t_hlines_value:
+        ax0.hlines(
+            t_hlines_value,
+            xmin=ax0.get_xlim()[0], xmax=ax0.get_xlim()[1],
+            colors="g", linestyles="dashed"
+        )
+
     ax0.legend(loc=t_legend_loc, fontsize=t_legend_fontsize)
     ax0.tick_params(axis="both", labelsize=t_tick_label_size, rotation=t_tick_label_rotation)
     ax0.set_title(t_ax_title)
