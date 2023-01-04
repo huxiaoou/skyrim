@@ -108,7 +108,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     """
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
     t_plot_df.plot(ax=ax0, lw=t_line_width, colormap=t_colormap)
-    xticks = np.arange(0, len(t_plot_df), int(len(t_plot_df) / t_xtick_count))
+    xticks = np.arange(0, len(t_plot_df), max(int(len(t_plot_df) / t_xtick_count), 1))
     xticklabels = t_plot_df.index[xticks]
     ax0.set_xticks(xticks)
     ax0.set_xticklabels(xticklabels)
@@ -388,7 +388,7 @@ def plot_lines_piecewise(t_plot_df: pd.DataFrame,
         )
 
     # shared axis settings
-    xticks = np.arange(0, len(t_plot_df), int(len(t_plot_df) / t_xtick_count))
+    xticks = np.arange(0, len(t_plot_df), max(int(len(t_plot_df) / t_xtick_count), 1))
     xticklabels = t_plot_df.index[xticks]
     ax0.set_xticks(xticks)
     ax0.set_xticklabels(xticklabels)
