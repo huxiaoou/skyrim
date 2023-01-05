@@ -12,6 +12,10 @@ from typing import Union
 matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
 matplotlib.style.use("Solarize_Light2")
 
+plt.rcParams["font.family"] = ["sans-serif"]
+plt.rcParams["font.sans-serif"] = ["SimHei"]
+plt.rcParams["axes.unicode_minus"] = False  # 设置正负号
+
 
 def check_and_mkdir(t_path: str):
     if not os.path.exists(t_path):
