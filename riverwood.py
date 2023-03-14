@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
-from skyrim.whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
+from whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
 from typing import List, Dict, Tuple, NewType, Union
 
 

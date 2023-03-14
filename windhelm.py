@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from skyrim.whiterun import parse_instrument_from_contract_wind
+from whiterun import parse_instrument_from_contract_wind
 
 """
 created @ 2022-06-23

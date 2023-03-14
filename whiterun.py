@@ -27,7 +27,7 @@ class CCalendar(object):
         self.reverse_df["sn"] = range(len(self.reverse_df))
         self.reverse_df = self.reverse_df.set_index("trade_date")
 
-    def get_iter_list(self, t_bgn_date, t_stp_date, t_ascending):
+    def get_iter_list(self, t_bgn_date: str, t_stp_date: str, t_ascending: bool):
         res = []
         for t_date in self.calendar_df["trade_date"]:
             if t_date < t_bgn_date or t_date >= t_stp_date:

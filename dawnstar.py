@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.style
 from typing import List, Dict
-from skyrim.whiterun import CCalendar
-from skyrim.winterhold import check_and_mkdir, remove_files_in_the_dir
+from whiterun import CCalendar
+from winterhold import check_and_mkdir, remove_files_in_the_dir
 
 '''
 Add Module Dawnstar with classes for trade and classes for portfolio to skyrim

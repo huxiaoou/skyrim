@@ -1,5 +1,5 @@
-from skyrim.whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
-from skyrim.falkreath import os, np, pd, CManagerLibReader
+from whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
+from falkreath import os, np, pd, CManagerLibReader
 from typing import List, Dict, Tuple, NewType, Union
 
 
