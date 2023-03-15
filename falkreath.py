@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 import sqlite3 as sql3
 from typing import Dict, List
@@ -7,16 +6,19 @@ import datetime as dt
 
 
 class CTable(object):
-    def __init__(self, t_table_name: str, t_primary_keys: Dict[str, str], t_value_columns: Dict[str, str]):
+    def __init__(self, t_table_struct: Dict):
         """
 
-        :param t_table_name:
-        :param t_primary_keys: {"key_name":"key_datatype"}
-        :param t_value_columns: {"value_name":"value_datatype"}
+        :param t_table_struct: should always contain at least three key-value pairs
+                0. table_name: str
+                1. primary_keys: {"key_name":"key_datatype"}
+                2. value_columns: {"value_name":"value_datatype"}
         """
-        self.m_table_name: str = t_table_name
-        self.m_primary_keys: Dict[str, str] = t_primary_keys
-        self.m_value_columns: Dict[str, str] = t_value_columns
+
+        self.m_table_name: str = t_table_struct["table_name"]
+        self.m_primary_keys: Dict[str, str] = t_table_struct["primary_keys"]
+        self.m_value_columns: Dict[str, str] = t_table_struct["value_columns"]
+
         self.m_vars = list(self.m_primary_keys.keys()) + list(self.m_value_columns.keys())
         self.m_vars_n = len(self.m_vars)
 
@@ -93,10 +95,11 @@ class CManagerLibWriter(CManagerLibReader):
         self.m_cursor.execute("DROP TABLE {}".format(t_table_name))
         return 0
 
-    def add_table(self, t_table: CTable):
+    def initialize_table(self, t_table: CTable, t_remove_existence: bool = True):
         """
 
-        :param t_table: "EXPOSURE"
+        :param t_table:
+        :param t_remove_existence: if to remove the existing table if it already has one
         :return:
         """
         self.m_manager_table[t_table.m_table_name] = t_table
@@ -104,8 +107,9 @@ class CManagerLibWriter(CManagerLibReader):
         # remove old table
         if self.is_table_existence(t_table.m_table_name):
             print("... Table {} is in database {} already".format(t_table.m_table_name, self.m_db_name))
-            self.remove_table(t_table.m_table_name)
-            print("... Table {} is removed from database {}".format(t_table.m_table_name, self.m_db_name))
+            if t_remove_existence:
+                self.remove_table(t_table.m_table_name)
+                print("... Table {} is removed from database {}".format(t_table.m_table_name, self.m_db_name))
 
         str_primary_keys = ["{} {}".format(k, v) for k, v in t_table.m_primary_keys.items()]
         str_value_columns = ["{} {}".format(k, v) for k, v in t_table.m_value_columns.items()]
@@ -117,7 +121,7 @@ class CManagerLibWriter(CManagerLibReader):
             str_set_primary
         )
         self.m_cursor.execute(cmd_sql_for_create_table)
-        print("... Table {} is added to {} as a new table".format(t_table.m_table_name, self.m_db_name))
+        print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
         return 0
 
     def update(self, t_table_name: str, t_update_df: pd.DataFrame, t_using_index: bool = False):
@@ -182,7 +186,7 @@ if __name__ == "__main__":
 
     # --- lib test
     mylib = CManagerLibWriter(t_db_name="test.db", t_db_save_dir="E://TMP")
-    mylib.add_table(t_table=CTable(
+    mylib.initialize_table(t_table=CTable(
         t_table_name=table_name,
         t_primary_keys={"trade_date": "TEXT", "instrument": "TEXT"},
         t_value_columns={"RSW": "REAL", "BASIS": "REAL"}

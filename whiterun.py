@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import pandas as pd
 import re
@@ -19,8 +20,34 @@ def parse_instrument_from_contract_wind(t_contract_id: str) -> str:
     return re.sub("[0-9]", "", t_contract_id)
 
 
-class CCalendar(object):
+class CCalendarBase(object):
+    def __init__(self, t_save_path: str):
+        self.save_path = t_save_path
+
+    def update_all(self, t_df: pd.DataFrame):
+        t_df.to_csv(self.save_path, index=False)
+        print(t_df)
+        return 0
+
+    def update_increment(self, t_df: pd.DataFrame):
+        try:
+            calendar_df = pd.read_csv(self.save_path, dtype="str")
+            print("Size of     calendar BEFORE update = {:>8d}".format(len(calendar_df)))
+            print("Last day of calendar BEFORE update = {}".format(calendar_df["trade_date"].iloc[-1]))
+            calendar_df = pd.concat([calendar_df, t_df], axis=0, ignore_index=True)
+            calendar_df = calendar_df.sort_values(by="trade_date")
+            calendar_df = calendar_df.drop_duplicates()
+            print("Size of     calendar AFTER  update = {:>8d}".format(len(calendar_df)))
+            print("Last day of calendar AFTER  update = {}".format(calendar_df["trade_date"].iloc[-1]))
+            calendar_df.to_csv(self.save_path, index=False)
+        except FileNotFoundError:
+            print("Could not find {}, please check again".format(self.save_path))
+        return 0
+
+
+class CCalendar(CCalendarBase):
     def __init__(self, t_path: os.path):
+        super().__init__(t_save_path=t_path)
         self.calendar_df = pd.read_csv(t_path, dtype=str)
         self.calendar_df["trade_date"] = self.calendar_df["trade_date"].map(lambda x: x.replace("-", ""))
         self.reverse_df = self.calendar_df.copy()
@@ -37,18 +64,6 @@ class CCalendar(object):
             return res
         else:
             return sorted(res, reverse=True)
-
-    def get_hist_date_since_begin_date(self, t_bgn_date: str, t_stp_date: str):
-        idx_filter = (self.calendar_df["trade_date"] >= t_bgn_date) & (self.calendar_df["trade_date"] < t_stp_date)
-        df = self.calendar_df.loc[idx_filter].reset_index(drop=True)
-        return df
-
-    def find_shift_date(self, t_base_date: str, t_shift: int):
-        # t_shift > 0: date in the future
-        # t_shift = 0: no shift
-        # t_shift < 0: date in the past
-        test_idx = self.reverse_df.at[t_base_date, "sn"]
-        return self.calendar_df["trade_date"].iloc[test_idx + t_shift]
 
     def get_sn(self, t_base_date: str):
         return self.reverse_df.at[t_base_date, "sn"]
@@ -71,19 +86,22 @@ class CCalendar(object):
         """
 
         :param t_this_date:
-        :param t_shift: t_shift : > 0, in the future; < 0, in the past
+        :param t_shift: > 0, get date in the future; < 0, get date in the past
         :return:
         """
 
-        if t_this_date in self.reverse_df.index:
+        try:
             t_this_sn = self.reverse_df.at[t_this_date, "sn"]
-            t_next_sn = t_this_sn + t_shift
-            if t_next_sn >= len(self.calendar_df):
-                return ""
-            else:
-                return self.calendar_df.at[t_next_sn, "trade_date"]
-        else:
-            return None
+        except KeyError:
+            print("{} is not in calendar".format(t_this_date))
+            sys.exit()
+        t_next_sn = t_this_sn + t_shift
+        try:
+            return self.calendar_df.at[t_next_sn, "trade_date"]
+        except KeyError:
+            print("{} {}{} days is not in calendar".format(
+                t_this_date, "+" if t_shift > 0 else "", t_shift))
+            sys.exit()
 
     def get_fix_gap_dates_list(self, t_bgn_date: str, t_fix_gap: int):
         t_bgn_sn = self.get_sn(t_base_date=t_bgn_date)
@@ -202,3 +220,33 @@ def convert_contract_id_to_wind_format(t_contract_id: str, t_instru_info_table: 
     _instrument_id = parse_instrument_from_contract(t_contract_id=t_contract_id)
     _exchange_id = t_instru_info_table.get_windCode(t_instrument_id=_instrument_id).split(".")[1]
     return t_contract_id.upper() + "." + _exchange_id[0:3]
+
+
+def fix_contract_id(x: str, t_exchange_id: str, t_instru_id_len: int, t_trade_date: str) -> str:
+    """
+
+    :param x: x should have a format like "MA105", in which "05" = May
+              however "1" is ambiguous, since it could be either "2011" or "2021"
+              this function is designed to solve this problem
+    :param t_exchange_id: CZC, DCE, SHFE, INE.
+    :param t_instru_id_len: len("MA") = 2
+    :param t_trade_date: on which day, this contract is traded
+    :return:
+    """
+    if t_exchange_id != "CZC":
+        # this problem only happens for CZC
+        return x
+
+    if len(x) - t_instru_id_len > 3:
+        # some old contract do have format like "MA1105"
+        # in this case Nothing should be done
+        return x
+
+    td = int(t_trade_date[2])  # decimal year to be inserted, "X" in "20XYMMDD"
+    ty = int(t_trade_date[3])  # trade year number,           "Y" in "20XYMMDD"
+    cy = int(x[t_instru_id_len])  # contract year, "1" in "MA105"
+    if cy < ty:
+        # contract year should always be greater than or equal to the trade year
+        # if not, decimal year +=1
+        td += 1
+    return x[0:t_instru_id_len] + str(td) + x[t_instru_id_len:]
