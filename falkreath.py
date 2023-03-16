@@ -45,6 +45,8 @@ class CMangerLibBase(object):
         self.m_cursor = self.m_connection.cursor()
         self.m_manager_table: Dict[str, CTable] = {}
 
+        self.m_default_table: str = ""
+
     def close(self):
         self.m_connection.commit()
         self.m_cursor.close()
@@ -61,30 +63,38 @@ class CMangerLibBase(object):
 
 
 class CManagerLibReader(CMangerLibBase):
-    def read(self, t_table_name: str, t_value_columns: List[str]):
+    def read(self, t_value_columns: List[str],
+             t_using_default_table: bool = True, t_table_name: str = ""):
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {}".format(str_value_columns, t_table_name)
+        cmd_sql_for_inquiry = "SELECT {} FROM {}".format(str_value_columns, _table_name)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
 
-    def read_by_date(self, t_table_name: str, t_trade_date: str, t_value_columns: List[str]):
+    def read_by_date(self, t_trade_date: str, t_value_columns: List[str],
+                     t_using_default_table: bool = True, t_table_name: str = ""):
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where trade_date = {}".format(str_value_columns, t_table_name, t_trade_date)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where trade_date = {}".format(str_value_columns, _table_name, t_trade_date)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
 
-    def read_by_instrument(self, t_table_name: str, t_instrument: str, t_value_columns: List[str]):
+    def read_by_instrument(self, t_instrument: str, t_value_columns: List[str],
+                           t_using_default_table: bool = True, t_table_name: str = ""):
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where instrument = {}".format(str_value_columns, t_table_name, t_instrument)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where instrument = {}".format(str_value_columns, _table_name, t_instrument)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
 
-    def read_by_factor(self, t_table_name: str, t_factor: str, t_value_columns: List[str]):
+    def read_by_factor(self, t_factor: str, t_value_columns: List[str],
+                       t_using_default_table: bool = True, t_table_name: str = ""):
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where factor = {}".format(str_value_columns, t_table_name, t_factor)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where factor = {}".format(str_value_columns, _table_name, t_factor)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
@@ -95,11 +105,12 @@ class CManagerLibWriter(CManagerLibReader):
         self.m_cursor.execute("DROP TABLE {}".format(t_table_name))
         return 0
 
-    def initialize_table(self, t_table: CTable, t_remove_existence: bool = True):
+    def initialize_table(self, t_table: CTable, t_remove_existence: bool = True, t_set_as_default: bool = True):
         """
 
         :param t_table:
         :param t_remove_existence: if to remove the existing table if it already has one
+        :param t_set_as_default: if set this table as default table
         :return:
         """
         self.m_manager_table[t_table.m_table_name] = t_table
@@ -121,39 +132,49 @@ class CManagerLibWriter(CManagerLibReader):
             str_set_primary
         )
         self.m_cursor.execute(cmd_sql_for_create_table)
+        if t_set_as_default:
+            self.m_default_table = t_table.m_table_name
         print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
         return 0
 
-    def update(self, t_table_name: str, t_update_df: pd.DataFrame, t_using_index: bool = False):
+    def update(self, t_update_df: pd.DataFrame, t_using_index: bool = False,
+               t_using_default_table: bool = True, t_table_name: str = ""):
         """
 
-        :param t_table_name: the table to be updated
         :param t_update_df: new data, column orders must be the same as the columns orders of the new target table
         :param t_using_index: whether using index as a data column
+        :param t_using_default_table: whether using the default table
+        :param t_table_name: the table to be updated, if t_using_default_table is False
         :return:
         """
-        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        cmd_sql_update = self.m_manager_table[_table_name].m_cmd_sql_update_template
         for data_cell in t_update_df.itertuples(index=t_using_index):  # itertuples is much faster than iterrows
             self.m_cursor.execute(cmd_sql_update, data_cell)
         return 0
 
 
 class CManagerLibWriterByDate(CManagerLibWriter):
-    def update_by_date(self, t_table_name: str, t_date: str, t_update_df: pd.DataFrame, t_using_index: bool = False):
+    def update_by_date(self, t_date: str, t_update_df: pd.DataFrame, t_using_index: bool = False,
+                       t_using_default_table: bool = True, t_table_name: str = ""):
         """
 
-        :param t_table_name: the table to be updated
         :param t_date: this class would treat date as one of the primary keys
         :param t_update_df: new data, column orders must be the same as the columns orders of the new target table
         :param t_using_index: whether using index as a data column
+        :param t_using_default_table: whether using the default table
+        :param t_table_name: the table to be updated, if t_using_default_table is False
         :return:
         """
-        cmd_sql_update = self.m_manager_table[t_table_name].m_cmd_sql_update_template
+
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        cmd_sql_update = self.m_manager_table[_table_name].m_cmd_sql_update_template
         for data_cell in t_update_df.itertuples(index=t_using_index):  # itertuples is much faster than iterrows
             self.m_cursor.execute(cmd_sql_update, (t_date,) + data_cell)
         return 0
 
-    def save_factor_by_date(self, t_table_name: str, t_all_factor_df: pd.DataFrame, t_bgn_date: str, t_stp_date: str):
+    def save_factor_by_date(self, t_all_factor_df: pd.DataFrame, t_bgn_date: str, t_stp_date: str,
+                            t_using_default_table: bool = True, t_table_name: str = ""):
         for _trade_date, _trade_date_df in t_all_factor_df.groupby(by="trade_date"):
             # noinspection PyTypeChecker
             if (_trade_date < t_bgn_date) or (_trade_date >= t_stp_date):
@@ -162,10 +183,11 @@ class CManagerLibWriterByDate(CManagerLibWriter):
             if len(_factor_df) > 0:
                 # noinspection PyTypeChecker
                 self.update_by_date(
-                    t_table_name=t_table_name,
                     t_date=_trade_date,
                     t_update_df=_factor_df,
-                    t_using_index=True
+                    t_using_index=True,
+                    t_using_default_table=t_using_default_table,
+                    t_table_name=t_table_name
                 )
         return 0
 
@@ -186,17 +208,14 @@ if __name__ == "__main__":
 
     # --- lib test
     mylib = CManagerLibWriter(t_db_name="test.db", t_db_save_dir="E://TMP")
-    mylib.initialize_table(t_table=CTable(
-        t_table_name=table_name,
-        t_primary_keys={"trade_date": "TEXT", "instrument": "TEXT"},
-        t_value_columns={"RSW": "REAL", "BASIS": "REAL"}
-    ))
+    mylib.initialize_table(t_table=CTable({
+        "table_name": table_name,
+        "primary_keys": {"trade_date": "TEXT", "instrument": "TEXT"},
+        "value_columns": {"RSW": "REAL", "BASIS": "REAL"}
+    }))
 
     t0 = dt.datetime.now()
-    mylib.update(
-        t_table_name=table_name,
-        t_update_df=update_df,
-    )
+    mylib.update(t_update_df=update_df)
     t1 = dt.datetime.now()
     print("... time consuming {:.2f} seconds".format((t1 - t0).total_seconds()))
 
