@@ -155,6 +155,19 @@ class CManagerLibWriter(CManagerLibReader):
 
 
 class CManagerLibWriterByDate(CManagerLibWriter):
+    def delete_by_date(self, t_date: str, t_using_default_table: bool = True, t_table_name: str = ""):
+        """
+
+        :param t_date:
+        :param t_using_default_table:
+        :param t_table_name:
+        :return:
+        """
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        cmd_sql_delete = "DELETE from {} where trade_date = '{}'".format(_table_name, t_date)
+        self.m_cursor.execute(cmd_sql_delete)
+        return 0
+
     def update_by_date(self, t_date: str, t_update_df: pd.DataFrame, t_using_index: bool = False,
                        t_using_default_table: bool = True, t_table_name: str = ""):
         """
