@@ -11,5 +11,6 @@ This project is designed to provide some highly frequently used tools in daily r
 
 ## falkreath.py
 
++ Class:CManagerLibReader, a class to provide a more convenient interface to read data from local sqlite3 database.
 + Class:CManagerLibWriterByDate, a class to provide a more convenient interface to manage the market data. A local database is created by this class, to record some intermediary results.
 

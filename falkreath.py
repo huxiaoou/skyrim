@@ -63,6 +63,10 @@ class CMangerLibBase(object):
 
 
 class CManagerLibReader(CMangerLibBase):
+    def set_default(self, t_default_table_name: str):
+        self.m_default_table = t_default_table_name
+        return 0
+
     def read(self, t_value_columns: List[str],
              t_using_default_table: bool = True, t_table_name: str = ""):
         _table_name = self.m_default_table if t_using_default_table else t_table_name
@@ -76,7 +80,7 @@ class CManagerLibReader(CMangerLibBase):
                      t_using_default_table: bool = True, t_table_name: str = ""):
         _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where trade_date = {}".format(str_value_columns, _table_name, t_trade_date)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where trade_date = '{}'".format(str_value_columns, _table_name, t_trade_date)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
@@ -85,7 +89,18 @@ class CManagerLibReader(CMangerLibBase):
                            t_using_default_table: bool = True, t_table_name: str = ""):
         _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where instrument = {}".format(str_value_columns, _table_name, t_instrument)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where instrument = '{}'".format(str_value_columns, _table_name, t_instrument)
+        rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
+        t_df = pd.DataFrame(data=rows, columns=t_value_columns)
+        return t_df
+
+    def read_by_instrument_and_time_window(self, t_instrument: str, t_value_columns: List[str],
+                                           t_bgn_date: str, t_stp_date: str,
+                                           t_using_default_table: bool = True, t_table_name: str = ""):
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        str_value_columns = ", ".join(t_value_columns)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where instrument = '{}' and trade_date >= '{}' and trade_date < '{}'".format(
+            str_value_columns, _table_name, t_instrument, t_bgn_date, t_stp_date)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
@@ -94,7 +109,7 @@ class CManagerLibReader(CMangerLibBase):
                        t_using_default_table: bool = True, t_table_name: str = ""):
         _table_name = self.m_default_table if t_using_default_table else t_table_name
         str_value_columns = ", ".join(t_value_columns)
-        cmd_sql_for_inquiry = "SELECT {} FROM {} where factor = {}".format(str_value_columns, _table_name, t_factor)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where factor = '{}'".format(str_value_columns, _table_name, t_factor)
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
@@ -133,7 +148,7 @@ class CManagerLibWriter(CManagerLibReader):
         )
         self.m_cursor.execute(cmd_sql_for_create_table)
         if t_set_as_default:
-            self.m_default_table = t_table.m_table_name
+            self.set_default(t_default_table_name=t_table.m_table_name)
         print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
         return 0
 
