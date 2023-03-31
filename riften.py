@@ -59,6 +59,7 @@ class CNAV(object):
         self.m_hold_period_return: float = 0
         self.m_annual_return: float = 0
         self.m_sharpe_ratio: float = 0
+        self.m_calmar_ratio: float = 0
 
         # secondary - A max drawdown scale
         self.m_max_drawdown_scale: float = 0  # a non-negative float, multiplied by RETURN_SCALE
@@ -107,6 +108,12 @@ class CNAV(object):
         self.m_max_drawdown_scale_idx = self.m_drawdown_scale_srs.idxmax()
         return 0
 
+    def cal_calmar_ratio(self):
+        self.cal_annual_return()
+        self.cal_max_drawdown_scale()
+        self.m_calmar_ratio = self.m_annual_return / self.m_max_drawdown_scale
+        return 0
+
     def cal_max_drawdown_duration(self):
         prev_high = self.m_nav_srs.iloc[0]
         prev_high_loc = 0
@@ -147,6 +154,7 @@ class CNAV(object):
         self.cal_annual_return(t_method=t_method)
         self.cal_sharpe_ratio()
         self.cal_max_drawdown_scale()
+        self.cal_calmar_ratio()
         self.cal_max_drawdown_duration()
         self.cal_max_recover_duration()
         return 0
@@ -164,6 +172,7 @@ class CNAV(object):
                 "hold_period_return": "{:.2f}".format(self.m_hold_period_return),
                 "annual_return": "{:.2f}".format(self.m_annual_return),
                 "sharpe_ratio": "{:.2f}".format(self.m_sharpe_ratio),
+                "calmar_ratio": "{:.2f}".format(self.m_calmar_ratio),
                 "max_drawdown_scale": "{:.2f}".format(self.m_max_drawdown_scale),
                 "max_drawdown_scale_idx": "{:s}".format(self.m_max_drawdown_scale_idx),
                 "max_drawdown_duration": "{:d}".format(self.m_max_drawdown_duration),
@@ -178,6 +187,7 @@ class CNAV(object):
                 "持有期收益": "{:.2f}".format(self.m_hold_period_return),
                 "年化收益": "{:.2f}".format(self.m_annual_return),
                 "夏普比率": "{:.2f}".format(self.m_sharpe_ratio),
+                "卡玛比率": "{:.2f}".format(self.m_calmar_ratio),
                 "最大回撤": "{:.2f}".format(self.m_max_drawdown_scale),
                 "最大回撤时点": "{:s}".format(self.m_max_drawdown_scale_idx),
                 "最长回撤期": "{:d}".format(self.m_max_drawdown_duration),
@@ -190,10 +200,11 @@ class CNAV(object):
         return d
 
     def display(self):
-        print("| HPR = {:>7.4f} | AnnRtn = {:>7.4f} | MDD = {:>7.2f} | SPR = {:>7.4f} | ".format(
+        print("| HPR = {:>7.4f} | AnnRtn = {:>7.4f} | MDD = {:>7.2f} | SPR = {:>7.4f} | CMR = {:>7.4f} |".format(
             self.m_hold_period_return,
             self.m_annual_return,
             self.m_max_drawdown_scale,
             self.m_sharpe_ratio,
+            self.m_calmar_ratio
         ))
         return 0
