@@ -1,5 +1,8 @@
+import os
+import numpy as np
+import pandas as pd
 from whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
-from falkreath import os, np, pd, CManagerLibReader
+from falkreath import CManagerLibReader
 from typing import List, Dict, Tuple, NewType, Union
 
 
@@ -19,7 +22,7 @@ class CManagerMarketData(object):
         # load major data info
         self.m_major: Dict[str, pd.DataFrame] = {}
         for instrument_id in t_mother_universe:
-            instrument_major_data_file = "major.minor.{}.csv.gz".format(instrument_id)
+            instrument_major_data_file = "major_minor.{}.csv.gz".format(instrument_id)
             instrument_major_data_path = os.path.join(t_dir_major_data, instrument_major_data_file)
             instrument_major_data_df = pd.read_csv(instrument_major_data_path, dtype={"trade_date": str}, usecols=["trade_date", "n_contract"]).set_index("trade_date")
             self.m_major[instrument_id] = instrument_major_data_df
@@ -58,6 +61,7 @@ class CManagerSignalBase(object):
         self.m_available_universe_lib = CManagerLibReader(
             t_db_name=self.m_available_universe_lib_structure.m_lib_name,
             t_db_save_dir=t_available_universe_dir)
+        self.m_available_universe_lib.set_default(self.m_available_universe_lib_structure.m_tab.m_table_name)
 
         # factors lib
         self.m_factors_by_tm_dir: str = t_factors_by_tm_dir
@@ -66,6 +70,7 @@ class CManagerSignalBase(object):
         self.m_factor_lib = CManagerLibReader(
             t_db_name=self.m_factor_lib_structure.m_lib_name,
             t_db_save_dir=t_factors_by_tm_dir)
+        self.m_factor_lib.set_default(self.m_factor_lib_structure.m_tab.m_table_name)
 
         self.m_mgr_md: CManagerMarketData = t_mgr_md
         self.m_is_trend_follow: bool = t_is_trend_follow
@@ -90,7 +95,6 @@ class CManagerSignalBase(object):
 
         # --- load available universe
         available_universe_df = self.m_available_universe_lib.read_by_date(
-            t_table_name=self.m_available_universe_lib_structure.m_tab.m_table_name,
             t_trade_date=t_sig_date,
             t_value_columns=["instrument"]
         )
@@ -98,7 +102,6 @@ class CManagerSignalBase(object):
 
         # --- load factors at signal date
         factor_df = self.m_factor_lib.read_by_date(
-            t_table_name=self.m_factor_lib_structure.m_tab.m_table_name,
             t_trade_date=t_sig_date,
             t_value_columns=["instrument", "value"]
         ).rename(mapper={"value": self.m_factor_lbl}, axis=1).set_index("instrument")
