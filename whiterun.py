@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import pandas as pd
 import re
+from typing import List
 
 """
 0.  provide two frequently used classes about trade date calendar and futures' instrument information
@@ -250,3 +251,41 @@ def fix_contract_id(x: str, t_exchange_id: str, t_instru_id_len: int, t_trade_da
         # if not, decimal year +=1
         td += 1
     return x[0:t_instru_id_len] + str(td) + x[t_instru_id_len:]
+
+
+# functions about Markdown
+def df_to_md_strings(df: pd.DataFrame, using_index: bool = False, index_name: str = ""):
+    def rejoin(s: List[str]):
+        return "|" + "|".join(s) + "|"
+
+    if using_index:
+        df.index.name = index_name
+    df_strs = df.to_string(index=using_index, index_names=using_index)
+    rows = df_strs.split("\n")
+    n_col = len(rows[0].split()) + int(using_index)
+    md_rows = [rejoin(r.split()) for r in rows]
+    if using_index:
+        md_rows[0] = "|" + index_name + md_rows[0]
+    md_rows.pop(1)
+    md_rows.insert(1, rejoin(["---"] * n_col))
+    return md_rows
+
+
+def md_strings_to_md_file(md_rows: List[str], md_path: str):
+    with open(md_path, "w+") as f:
+        for md_row in md_rows:
+            f.write(md_row + "\n")
+    return 0
+
+
+def df_to_md_files(df: pd.DataFrame, md_path: str, using_index: bool = False, index_name: str = ""):
+    """
+
+    :param df:
+    :param md_path:
+    :param using_index:
+    :param index_name: if using_index, must be provided
+    :return:
+    """
+    md_strings_to_md_file(md_rows=df_to_md_strings(df, using_index, index_name), md_path=md_path)
+    return 0
