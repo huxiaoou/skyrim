@@ -266,7 +266,7 @@ def df_to_md_strings(df: pd.DataFrame, using_index: bool = False, index_name: st
     md_rows = [rejoin(r.split()) for r in rows]
     if using_index:
         md_rows[0] = "|" + index_name + md_rows[0]
-    md_rows.pop(1)
+        md_rows.pop(1)
     md_rows.insert(1, rejoin(["---"] * n_col))
     return md_rows
 
