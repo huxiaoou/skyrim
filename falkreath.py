@@ -120,22 +120,25 @@ class CManagerLibWriter(CManagerLibReader):
         self.m_cursor.execute("DROP TABLE {}".format(t_table_name))
         return 0
 
-    def initialize_table(self, t_table: CTable, t_remove_existence: bool = True, t_set_as_default: bool = True):
+    def initialize_table(self, t_table: CTable, t_remove_existence: bool = True, t_set_as_default: bool = True, t_verbose: bool = False):
         """
 
         :param t_table:
         :param t_remove_existence: if to remove the existing table if it already has one
         :param t_set_as_default: if set this table as default table
+        :param t_verbose: if to print more details
         :return:
         """
         self.m_manager_table[t_table.m_table_name] = t_table
 
         # remove old table
         if self.is_table_existence(t_table.m_table_name):
-            print("... Table {} is in database {} already".format(t_table.m_table_name, self.m_db_name))
+            if t_verbose:
+                print("... Table {} is in database {} already".format(t_table.m_table_name, self.m_db_name))
             if t_remove_existence:
                 self.remove_table(t_table.m_table_name)
-                print("... Table {} is removed from database {}".format(t_table.m_table_name, self.m_db_name))
+                if t_verbose:
+                    print("... Table {} is removed from database {}".format(t_table.m_table_name, self.m_db_name))
 
         str_primary_keys = ["{} {}".format(k, v) for k, v in t_table.m_primary_keys.items()]
         str_value_columns = ["{} {}".format(k, v) for k, v in t_table.m_value_columns.items()]
