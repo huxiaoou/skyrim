@@ -16,7 +16,7 @@ class CNAV(object):
                                     the Net-Assets-Value series, with datetime-like index in string format.
                                     The first item in this series could not be ONE, and the class will do the conversion
                                     when initialized.
-                                 elif t_type == "NAV":
+                                 elif t_type == "RET":
                                     the Assets Return series, the return should NOT be multiplied by RETURN_SCALE
 
                               B. the index of the series is supposed to be continuous, i.e., there are not any missing
