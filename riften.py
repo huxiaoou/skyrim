@@ -58,6 +58,7 @@ class CNAV(object):
         self.m_return_std: float = 0
         self.m_hold_period_return: float = 0
         self.m_annual_return: float = 0
+        self.m_annual_volatility: float = 0
         self.m_sharpe_ratio: float = 0
         self.m_calmar_ratio: float = 0
 
@@ -89,6 +90,7 @@ class CNAV(object):
         return 0
 
     def cal_annual_return(self, t_method: str = "linear"):
+        self.m_annual_volatility = self.m_rtn_srs.std() * np.sqrt(self.m_annual_factor)
         if t_method == "linear":
             self.m_annual_return = self.m_rtn_srs.mean() * self.m_annual_factor
         else:
@@ -171,6 +173,7 @@ class CNAV(object):
                 "return_std": "{:.2f}".format(self.m_return_std),
                 "hold_period_return": "{:.2f}".format(self.m_hold_period_return),
                 "annual_return": "{:.2f}".format(self.m_annual_return),
+                "annual_volatility": "{:.2f}".format(self.m_annual_volatility),
                 "sharpe_ratio": "{:.2f}".format(self.m_sharpe_ratio),
                 "calmar_ratio": "{:.2f}".format(self.m_calmar_ratio),
                 "max_drawdown_scale": "{:.2f}".format(self.m_max_drawdown_scale),
@@ -186,6 +189,7 @@ class CNAV(object):
                 "收益率波动": "{:.2f}".format(self.m_return_std),
                 "持有期收益": "{:.2f}".format(self.m_hold_period_return),
                 "年化收益": "{:.2f}".format(self.m_annual_return),
+                "年化波动": "{:.2f}".format(self.m_annual_volatility),
                 "夏普比率": "{:.2f}".format(self.m_sharpe_ratio),
                 "卡玛比率": "{:.2f}".format(self.m_calmar_ratio),
                 "最大回撤": "{:.2f}".format(self.m_max_drawdown_scale),
