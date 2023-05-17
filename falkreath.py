@@ -114,6 +114,32 @@ class CManagerLibReader(CMangerLibBase):
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
 
+    def read_by_conditions_and_time_window(self, t_conditions: dict, t_conditions_relation: int,
+                                           t_value_columns: List[str],
+                                           t_bgn_date: str, t_stp_date: str,
+                                           t_using_default_table: bool = True, t_table_name: str = ""):
+        """
+
+        :param t_conditions: a dict like: like {"instrument": "IC.CFE", "tid":"T01"}, keys and values all must be string
+        :param t_conditions_relation: 0: intersection, 1: union
+        :param t_value_columns:
+        :param t_bgn_date:
+        :param t_stp_date:
+        :param t_using_default_table:
+        :param t_table_name:
+        :return:
+        """
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        str_value_columns = ", ".join(t_value_columns)
+        _conds_des = ["{} = '{}'".format(k, v) for k, v in t_conditions.items()]
+        _conds_rel = " and " if t_conditions_relation == 0 else " or "
+        _conds_str = _conds_rel.join(_conds_des)
+        cmd_sql_for_inquiry = "SELECT {} FROM {} where {} and trade_date >= '{}' and trade_date < '{}'".format(
+            str_value_columns, _table_name, _conds_str, t_bgn_date, t_stp_date)
+        rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
+        t_df = pd.DataFrame(data=rows, columns=t_value_columns)
+        return t_df
+
 
 class CManagerLibWriter(CManagerLibReader):
     def remove_table(self, t_table_name: str):
