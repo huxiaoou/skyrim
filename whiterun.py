@@ -110,7 +110,35 @@ class CCalendar(CCalendarBase):
 
 
 class CCalendarMonthly(CCalendar):
-    def get_trade_month(self, t_trade_month: str):
+    def __init__(self, t_path: os.path, t_bgn_year: int = 2010, t_stp_year: int = 2030):
+        super().__init__(t_path)
+        self.m_trade_months = ["{}{:02d}".format(y, m)
+                               for y in range(t_bgn_year, t_stp_year) for m in range(1, 13)]
+
+    def get_trade_month_idx(self, t_trade_month: str):
+        return self.m_trade_months.index(t_trade_month)
+
+    def get_latest_month_from_trade_date(self, t_trade_date: str):
+        _trade_month = t_trade_date[0:6]
+        _trade_month_idx = self.get_trade_month_idx(_trade_month)
+        return self.m_trade_months[_trade_month_idx - 1]
+
+    def get_next_month(self, t_trade_month: str, t_shift: int):
+        """
+
+        :param t_trade_month:
+        :param t_shift: > 0, in the future; < 0, in the past
+        :return:
+        """
+        _trade_month_idx = self.get_trade_month_idx(t_trade_month)
+        return self.m_trade_months[_trade_month_idx + t_shift]
+
+    def get_iter_month(self, t_bgn_month: str, t_stp_month: str):
+        _bgn_idx = self.get_trade_month_idx(t_bgn_month)
+        _stp_idx = self.get_trade_month_idx(t_stp_month)
+        return self.m_trade_months[_bgn_idx:_stp_idx]
+
+    def get_trade_month_dates(self, t_trade_month: str):
         """
 
         :param t_trade_month: format = "YYYYMM", i.e. "202305"
@@ -127,7 +155,7 @@ class CCalendarMonthly(CCalendar):
         :param t_trade_month: format = "YYYYMM", i.e. "202305"
         :return:
         """
-        trade_month_df = self.get_trade_month(t_trade_month=t_trade_month)
+        trade_month_df = self.get_trade_month_dates(t_trade_month)
         return trade_month_df["trade_date"].iloc[0]
 
     def get_last_date_of_month(self, t_trade_month: str):
@@ -136,7 +164,7 @@ class CCalendarMonthly(CCalendar):
         :param t_trade_month: format = "YYYYMM", i.e. "202305"
         :return:
         """
-        trade_month_df = self.get_trade_month(t_trade_month=t_trade_month)
+        trade_month_df = self.get_trade_month_dates(t_trade_month)
         return trade_month_df["trade_date"].iloc[-1]
 
 
