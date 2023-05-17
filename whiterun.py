@@ -109,6 +109,37 @@ class CCalendar(CCalendarBase):
         return self.calendar_df["trade_date"].iloc[t_bgn_sn::t_fix_gap].tolist()
 
 
+class CCalendarMonthly(CCalendar):
+    def get_trade_month(self, t_trade_month: str):
+        """
+
+        :param t_trade_month: format = "YYYYMM", i.e. "202305"
+        :return:
+        """
+        self.calendar_df["trade_month"] = self.calendar_df["trade_date"].map(lambda z: z[0:6])
+        filter_trade_month = self.calendar_df["trade_month"] == t_trade_month
+        trade_month_df = self.calendar_df.loc[filter_trade_month]
+        return trade_month_df
+
+    def get_first_date_of_month(self, t_trade_month: str):
+        """
+
+        :param t_trade_month: format = "YYYYMM", i.e. "202305"
+        :return:
+        """
+        trade_month_df = self.get_trade_month(t_trade_month=t_trade_month)
+        return trade_month_df["trade_date"].iloc[0]
+
+    def get_last_date_of_month(self, t_trade_month: str):
+        """
+
+        :param t_trade_month: format = "YYYYMM", i.e. "202305"
+        :return:
+        """
+        trade_month_df = self.get_trade_month(t_trade_month=t_trade_month)
+        return trade_month_df["trade_date"].iloc[-1]
+
+
 class CInstrumentCalendar(object):
     def __init__(self, t_instrument_id: str, t_calendar_dir: str):
         instru_calendar_file = "trade_calendar.{}.csv".format(t_instrument_id)
