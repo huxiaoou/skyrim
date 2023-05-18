@@ -110,10 +110,11 @@ class CCalendar(CCalendarBase):
 
 
 class CCalendarMonthly(CCalendar):
-    def __init__(self, t_path: os.path, t_bgn_year: int = 2010, t_stp_year: int = 2030):
+    def __init__(self, t_path: os.path):
         super().__init__(t_path)
-        self.m_trade_months = ["{}{:02d}".format(y, m)
-                               for y in range(t_bgn_year, t_stp_year) for m in range(1, 13)]
+        self.calendar_df["trade_month"] = self.calendar_df["trade_date"].map(lambda z: z[0:6])
+        self.m_trade_months = list(self.calendar_df["trade_month"].unique())
+        self.m_trade_months.sort()
 
     def get_trade_month_idx(self, t_trade_month: str):
         return self.m_trade_months.index(t_trade_month)
@@ -144,7 +145,6 @@ class CCalendarMonthly(CCalendar):
         :param t_trade_month: format = "YYYYMM", i.e. "202305"
         :return:
         """
-        self.calendar_df["trade_month"] = self.calendar_df["trade_date"].map(lambda z: z[0:6])
         filter_trade_month = self.calendar_df["trade_month"] == t_trade_month
         trade_month_df = self.calendar_df.loc[filter_trade_month]
         return trade_month_df
@@ -166,6 +166,20 @@ class CCalendarMonthly(CCalendar):
         """
         trade_month_df = self.get_trade_month_dates(t_trade_month)
         return trade_month_df["trade_date"].iloc[-1]
+
+    def map_iter_dates_to_iter_months(self, bgn_date: str, stp_date: str):
+        iter_dates = self.get_iter_list(bgn_date, stp_date, True)
+        bgn_last_month = self.get_latest_month_from_trade_date(iter_dates[0])
+        end_last_month = self.get_latest_month_from_trade_date(iter_dates[-1])
+        stp_last_month = self.get_next_month(end_last_month, 1)
+        iter_months = self.get_iter_month(bgn_last_month, stp_last_month)
+        return iter_months
+
+    def get_bgn_and_end_dates_for_trailing_window(self, end_month: str, trn_win: int):
+        bgn_month = self.get_next_month(end_month, -trn_win + 1)
+        bgn_date = self.get_first_date_of_month(bgn_month)
+        end_date = self.get_last_date_of_month(end_month)
+        return bgn_date, end_date
 
 
 class CInstrumentCalendar(object):
