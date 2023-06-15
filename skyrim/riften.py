@@ -9,7 +9,7 @@ created @ 2021-02-22
 
 
 class CNAV(object):
-    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str, t_ret_scale: int = 100, t_type: str = "NAV"):
+    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str, t_turnover_period: int = 1, t_ret_scale: int = 100, t_type: str = "NAV"):
         """
 
         :param t_raw_nav_srs: A. if t_type == "NAV":
@@ -24,6 +24,10 @@ class CNAV(object):
         :param t_annual_rf_rate: annualized risk-free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
         :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
+        :param t_turnover_period: usually it would be = 1, but in some theoretical model, returns may have overlapping windows, use this to adjust the results
+                                  make sure that you know exactly the meaning of (m_return_mean, m_return_std), i.e. if it stands for
+                                  A: daily return
+                                  B: some-time window return, in this case, use turnover_period to adjust sharpe ratio
         :param t_type: "NAV" or "RET
         """
         self.m_ret_scale: int = t_ret_scale
@@ -49,6 +53,7 @@ class CNAV(object):
             "Q": 4,
             "Y": 1,
         }[t_freq]
+        self.m_turnover_period: int = t_turnover_period
 
         self.m_annual_rf_rate: float = t_annual_rf_rate * self.m_ret_scale
 
@@ -101,7 +106,7 @@ class CNAV(object):
         diff_srs = self.m_rtn_srs - self.m_annual_rf_rate / self.m_annual_factor
         mu = diff_srs.mean()
         sd = diff_srs.std()
-        self.m_sharpe_ratio = mu / sd * np.sqrt(self.m_annual_factor)
+        self.m_sharpe_ratio = mu / sd * np.sqrt(self.m_annual_factor / self.m_turnover_period)
         return 0
 
     def cal_max_drawdown_scale(self):
@@ -169,8 +174,8 @@ class CNAV(object):
         """
         if t_type.lower() == "eng":
             d = {
-                "return_mean": "{:.2f}".format(self.m_return_mean),
-                "return_std": "{:.2f}".format(self.m_return_std),
+                "return_mean": "{:.3f}".format(self.m_return_mean),
+                "return_std": "{:.3f}".format(self.m_return_std),
                 "hold_period_return": "{:.2f}".format(self.m_hold_period_return),
                 "annual_return": "{:.2f}".format(self.m_annual_return),
                 "annual_volatility": "{:.2f}".format(self.m_annual_volatility),
@@ -185,8 +190,8 @@ class CNAV(object):
             }
         elif t_type.lower() == "chs":
             d = {
-                "收益率平均": "{:.2f}".format(self.m_return_mean),
-                "收益率波动": "{:.2f}".format(self.m_return_std),
+                "收益率平均": "{:.3f}".format(self.m_return_mean),
+                "收益率波动": "{:.3f}".format(self.m_return_std),
                 "持有期收益": "{:.2f}".format(self.m_hold_period_return),
                 "年化收益": "{:.2f}".format(self.m_annual_return),
                 "年化波动": "{:.2f}".format(self.m_annual_volatility),
