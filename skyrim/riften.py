@@ -9,7 +9,7 @@ created @ 2021-02-22
 
 
 class CNAV(object):
-    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_freq: str, t_turnover_period: int = 1, t_ret_scale: int = 100, t_type: str = "NAV"):
+    def __init__(self, t_raw_nav_srs: pd.Series, t_annual_rf_rate: float, t_annual_factor: float = 252, t_ret_scale: int = 100, t_type: str = "NAV"):
         """
 
         :param t_raw_nav_srs: A. if t_type == "NAV":
@@ -23,11 +23,12 @@ class CNAV(object):
                                  dates or timestamp in the index.
         :param t_annual_rf_rate: annualized risk-free rate, must NOT be multiplied by the return scale.
                                  the class will do the conversion when initialized
-        :param t_freq: a string to indicate the frequency the series, must be one of ["S", "D", "W", "M", "Q", "Y"]
-        :param t_turnover_period: usually it would be = 1, but in some theoretical model, returns may have overlapping windows, use this to adjust the results
-                                  make sure that you know exactly the meaning of (m_return_mean, m_return_std), i.e. if it stands for
-                                  A: daily return
-                                  B: some-time window return, in this case, use turnover_period to adjust sharpe ratio
+        :param t_annual_factor: if the average of return series means a return with hold period = T trading days,
+                                this should be 252 / T
+                                daily returns, T = 1, default value
+                                weekly returns, T = 5
+                                monthly returns, T = 21
+                                quarterly returns, T = 63
         :param t_type: "NAV" or "RET
         """
         self.m_ret_scale: int = t_ret_scale
@@ -45,15 +46,7 @@ class CNAV(object):
 
         self.m_obs: int = len(t_raw_nav_srs)
 
-        self.m_annual_factor: int = {
-            "S": 504,
-            "D": 252,
-            "W": 52,
-            "M": 12,
-            "Q": 4,
-            "Y": 1,
-        }[t_freq]
-        self.m_turnover_period: int = t_turnover_period
+        self.m_annual_factor: float = t_annual_factor
 
         self.m_annual_rf_rate: float = t_annual_rf_rate * self.m_ret_scale
 
@@ -107,7 +100,7 @@ class CNAV(object):
         diff_srs = self.m_rtn_srs - self.m_annual_rf_rate / self.m_annual_factor
         mu = diff_srs.mean()
         sd = diff_srs.std()
-        self.m_sharpe_ratio = mu / sd * np.sqrt(self.m_annual_factor / self.m_turnover_period)
+        self.m_sharpe_ratio = mu / sd * np.sqrt(self.m_annual_factor)
         return 0
 
     def cal_max_drawdown_scale(self):
@@ -200,7 +193,7 @@ class CNAV(object):
                 "max_recover_duration": "{:d}".format(self.m_max_recover_duration),
                 "max_recover_duration_idx": "{:s}".format(self.m_max_recover_duration_idx),
             }
-            d.update(self.m_value_at_risks)
+            d.update({k: "{:.3f}".format(v) for k, v in self.m_value_at_risks.items()})
         elif t_type.lower() == "chs":
             d = {
                 "收益率平均": "{:.3f}".format(self.m_return_mean),
@@ -217,7 +210,7 @@ class CNAV(object):
                 "最长恢复期": "{:d}".format(self.m_max_recover_duration),
                 "最长恢复期时点": "{:s}".format(self.m_max_recover_duration_idx),
             }
-            d.update(self.m_value_at_risks)
+            d.update({k: "{:.3f}".format(v) for k, v in self.m_value_at_risks.items()})
         else:
             d = {}
         return d
