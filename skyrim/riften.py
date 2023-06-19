@@ -66,6 +66,7 @@ class CNAV(object):
         self.m_annual_volatility: float = 0
         self.m_sharpe_ratio: float = 0
         self.m_calmar_ratio: float = 0
+        self.m_value_at_risks: dict = {}
 
         # secondary - A max drawdown scale
         self.m_max_drawdown_scale: float = 0  # a non-negative float, multiplied by RETURN_SCALE
@@ -154,7 +155,17 @@ class CNAV(object):
         self.m_max_recover_duration_idx = self.m_recover_duration_srs.idxmax()
         return
 
-    def cal_all_indicators(self, t_method: str = "linear"):
+    def cal_value_at_risk(self, t_qs: tuple):
+        self.m_value_at_risks.update({"q{:02d}".format(q): np.percentile(self.m_rtn_srs, q) for q in t_qs})
+
+    def cal_all_indicators(self, t_method: str = "linear", t_qs: tuple = ()):
+        """
+
+        :param t_method:
+        :param t_qs: Percentage or sequence of percentages for the percentiles to compute.
+                     Values must be between 0 and 100 inclusive.
+        :return:
+        """
         self.cal_return_mean()
         self.cal_return_std()
         self.cal_hold_period_return()
@@ -164,6 +175,7 @@ class CNAV(object):
         self.cal_calmar_ratio()
         self.cal_max_drawdown_duration()
         self.cal_max_recover_duration()
+        self.cal_value_at_risk(t_qs=t_qs)
         return 0
 
     def to_dict(self, t_type: str):
@@ -188,6 +200,7 @@ class CNAV(object):
                 "max_recover_duration": "{:d}".format(self.m_max_recover_duration),
                 "max_recover_duration_idx": "{:s}".format(self.m_max_recover_duration_idx),
             }
+            d.update(self.m_value_at_risks)
         elif t_type.lower() == "chs":
             d = {
                 "收益率平均": "{:.3f}".format(self.m_return_mean),
@@ -204,6 +217,7 @@ class CNAV(object):
                 "最长恢复期": "{:d}".format(self.m_max_recover_duration),
                 "最长恢复期时点": "{:s}".format(self.m_max_recover_duration_idx),
             }
+            d.update(self.m_value_at_risks)
         else:
             d = {}
         return d
