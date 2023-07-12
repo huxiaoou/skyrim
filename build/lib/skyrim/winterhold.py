@@ -11,7 +11,6 @@ import platform
 from typing import Union
 
 matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
-# matplotlib.style.use("Solarize_Light2")
 
 this_platform = platform.system().upper()
 if this_platform == "WINDOWS":
@@ -152,7 +151,10 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
 def plot_corr(t_corr_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".",
               t_fig_size: tuple = (16, 9),
               t_tick_label_rotation: int = 0,
-              t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf"):
+              t_annot_size: int = 8, t_annot_format: str = ".2f", t_save_type: str = "pdf",
+              t_style: str = "Solarize_Light2",
+              ):
+    plt.style.use(t_style)
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
     sns.heatmap(t_corr_df, cmap="Blues", annot=True, fmt=t_annot_format, annot_kws={"size": t_annot_size})
     ax0.tick_params(axis="y", rotation=t_tick_label_rotation)
@@ -168,7 +170,9 @@ def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_di
              t_colormap: Union[None, str] = "jet",
              t_xtick_span: int = 1, t_xlabel: str = "", t_ylim: tuple = (None, None), t_legend_loc="upper left",
              t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
-             t_ax_title: str = "", t_save_type: str = "pdf"):
+             t_ax_title: str = "", t_save_type: str = "pdf",
+             t_style: str = "Solarize_Light2",
+             ):
     """
 
     :param t_bar_df: if not transposed, each row(obs) of t_bar_df means a tick in the x-axis,
@@ -188,8 +192,10 @@ def plot_bar(t_bar_df: pd.DataFrame, t_stacked: bool, t_fig_name: str, t_save_di
     :param t_tick_label_rotation:
     :param t_ax_title:
     :param t_save_type:
+    :param t_style:
     :return:
     """
+    plt.style.use(t_style)
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
     t_bar_df.plot(ax=ax0, kind="bar", stacked=t_stacked, colormap=t_colormap)
     n_ticks = len(t_bar_df)
@@ -222,7 +228,9 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
                t_legend_loc: str = "upper left",
                t_xtick_span: int = 1, t_xlabel: str = "",
                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
-               t_ax_title: str = "", t_save_type: str = "pdf"):
+               t_ax_title: str = "", t_save_type: str = "pdf",
+               t_style: str = "Solarize_Light2",
+               ):
     """
 
     :param t_plot_df:
@@ -251,8 +259,10 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
     :param t_tick_label_rotation:
     :param t_ax_title:
     :param t_save_type:
+    :param t_style:
     :return:
     """
+    plt.style.use(t_style)
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
     ax1 = ax0.twinx()
     t_plot_df[t_primary_cols].plot(ax=ax0, kind=t_primary_kind, colormap=t_primary_colormap,
@@ -287,7 +297,10 @@ def plot_twinx(t_plot_df: pd.DataFrame, t_primary_cols: list, t_secondary_cols: 
 def plot_single_line_piecewise(t_ax: matplotlib.axes.Axes, t_plot_df: pd.DataFrame,
                                t_line_val_label: str, t_line_tag_label: str,
                                t_line_style: str, t_piecewise_color_map: dict, t_line_width: float,
-                               t_legend_loc: str):
+                               t_legend_loc: str,
+                               t_style: str = "Solarize_Light2",
+                               ):
+    plt.style.use(t_style)
     ticks_n = len(t_plot_df)
     line_val_srs = t_plot_df[t_line_val_label]
     line_tag_srs = t_plot_df[t_line_tag_label]
@@ -332,7 +345,9 @@ def plot_lines_piecewise(t_plot_df: pd.DataFrame,
                          t_xtick_count: int = 10, t_xlabel: str = "", t_ylim: tuple = (None, None),
                          t_tick_label_size: int = 12, t_tick_label_rotation: int = 0, t_ax_title: str = "",
                          t_legend_loc: str = "upper left",
-                         t_fig_name: str = "test_example", t_save_dir: str = ".", t_save_format: str = "pdf"):
+                         t_fig_name: str = "test_example", t_save_dir: str = ".", t_save_format: str = "pdf",
+                         t_style: str = "Solarize_Light2",
+                         ):
     """
 
     :param t_plot_df: date string as index
@@ -382,10 +397,12 @@ def plot_lines_piecewise(t_plot_df: pd.DataFrame,
     :param t_legend_loc: location of legend
     :param t_save_dir:
     :param t_save_format:
+    :param t_style:
 
     :return:
     """
 
+    plt.style.use(t_style)
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
 
     for (line_val_label, line_tag_label, line_style, line_width) in t_piecewise_lines_list:
