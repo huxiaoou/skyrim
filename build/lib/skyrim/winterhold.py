@@ -10,9 +10,8 @@ import shutil
 import platform
 from typing import Union
 
-
 matplotlib.use("Agg")  # to fix some complicated bugs which lead to IDE break down when Debug mode is activated.
-matplotlib.style.use("Solarize_Light2")
+# matplotlib.style.use("Solarize_Light2")
 
 this_platform = platform.system().upper()
 if this_platform == "WINDOWS":
@@ -89,6 +88,7 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
                t_tick_label_size: int = 12, t_tick_label_rotation: int = 0,
                t_vlines_index: list = None,
                t_hlines_value: list = None,
+               t_style: str = "Solarize_Light2",
                t_ax_title: str = "", t_save_type: str = "pdf"
                ):
     """
@@ -110,11 +110,14 @@ def plot_lines(t_plot_df: pd.DataFrame, t_fig_name: str, t_save_dir: str = ".", 
     :param t_tick_label_rotation: the rotation of the tick labels, 0 = norm, 90 = fonts are rotated 90 degree counter-clockwise
     :param t_vlines_index: a list of indexes of vertical lines
     :param t_hlines_value: a list of values of vertical lines
+    :param t_style:
     :param t_ax_title: the title of the ax
     :param t_save_type: the type of file, frequently used values are:
                         ["pdf", "jpg"]
     :return:
     """
+    plt.style.use(t_style)
+
     fig0, ax0 = plt.subplots(figsize=t_fig_size)
     t_plot_df.plot(ax=ax0, lw=t_line_width, colormap=t_colormap)
     xticks = np.arange(0, len(t_plot_df), max(int(len(t_plot_df) / t_xtick_count), 1))
