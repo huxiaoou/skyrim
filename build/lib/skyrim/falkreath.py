@@ -36,6 +36,13 @@ class CLib1Tab1(object):
         self.m_tab: CTable = t_tab
 
 
+class CLib1TabN(object):
+    def __int__(self, t_lib_name: str, t_tabs: List[CTable]):
+        self.m_lib_name: str = t_lib_name
+        self.m_tabs: List[CTable] = t_tabs
+        self.m_tab_names: List[str] = [_.m_table_name for _ in self.m_tabs]
+
+
 class CMangerLibBase(object):
     def __init__(self, t_db_save_dir: str, t_db_name: str):
         self.m_db_save_dir: str = t_db_save_dir
@@ -178,6 +185,12 @@ class CManagerLibWriter(CManagerLibReader):
         if t_set_as_default:
             self.set_default(t_default_table_name=t_table.m_table_name)
         print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
+        return 0
+
+    def initialize_tables(self, t_tables: List[CTable], t_remove_existence: bool = True, t_default_table_name: str = "", t_verbose: bool = False):
+        for tab in t_tables:
+            self.initialize_table(t_table=tab, t_remove_existence=t_remove_existence, t_verbose=t_verbose,
+                                  t_set_as_default=tab.m_table_name == t_default_table_name)
         return 0
 
     def update(self, t_update_df: pd.DataFrame, t_using_index: bool = False,
