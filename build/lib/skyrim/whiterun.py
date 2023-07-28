@@ -10,6 +10,22 @@ from typing import List
 """
 
 
+def SetFontRed(s: str):
+    return "\033[0;31;40m{}\033[0m".format(s)
+
+
+def SetFontGreen(s: str):
+    return "\033[0;32;40m{}\033[0m".format(s)
+
+
+def SetFontYellow(s: str):
+    return "\033[0;33;40m{}\033[0m".format(s)
+
+
+def SetFontBlue(s: str):
+    return "\033[0;34;40m{}\033[0m".format(s)
+
+
 def parse_instrument_from_contract(t_contract_id: str) -> str:
     # s = 0
     # while t_contract_id[s] < "0" or t_contract_id[s] > "9":
