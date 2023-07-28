@@ -68,6 +68,14 @@ class CMangerLibBase(object):
         else:
             return True
 
+    def reconnect(self):
+        self.m_connection = sql3.connect(self.m_db_path)
+        self.m_cursor = self.m_connection.cursor()
+        return 0
+
+    def get_table(self, t_table_name: str) -> CTable:
+        return self.m_manager_table[t_table_name]
+
 
 class CManagerLibReader(CMangerLibBase):
     def set_default(self, t_default_table_name: str):
