@@ -184,7 +184,8 @@ class CManagerLibWriter(CManagerLibReader):
         self.m_cursor.execute(cmd_sql_for_create_table)
         if t_set_as_default:
             self.set_default(t_default_table_name=t_table.m_table_name)
-        print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
+        if t_verbose:
+            print("... Table {} in {} is initialized".format(t_table.m_table_name, self.m_db_name))
         return 0
 
     def initialize_tables(self, t_tables: List[CTable], t_remove_existence: bool = True, t_default_table_name: str = "", t_verbose: bool = False):
