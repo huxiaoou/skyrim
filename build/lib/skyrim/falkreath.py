@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3 as sql3
 from typing import Dict, List
 import datetime as dt
+from skyrim.whiterun import CCalendar, SetFontRed, SetFontYellow
 
 
 class CTable(object):
@@ -153,6 +154,29 @@ class CManagerLibReader(CMangerLibBase):
         rows = self.m_cursor.execute(cmd_sql_for_inquiry).fetchall()
         t_df = pd.DataFrame(data=rows, columns=t_value_columns)
         return t_df
+
+    def check_continuity(self, append_date: str, t_calendar: CCalendar,
+                         t_using_default_table: bool = True, t_table_name: str = "") -> int:
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        cmd_sql_get_last_date = f"SELECT trade_date FROM {_table_name} ORDER BY rowid DESC LIMIT 1;"
+        rows = self.m_cursor.execute(cmd_sql_get_last_date).fetchall()
+        if len(rows) > 0:
+            expected_next_date = t_calendar.get_next_date(last_date := rows[0][0], 1)
+        else:
+            last_date, expected_next_date = "not available", ""
+
+        if expected_next_date == append_date:
+            return 0
+        elif expected_next_date < append_date:
+            print(f"... Warning! Last date of {SetFontRed(_table_name)} is {last_date}, "
+                  f"and expected next date should be {SetFontRed(expected_next_date)}, but input date = {append_date}. "
+                  f"Some days may be {SetFontYellow('omitted')}")
+            return 1
+        else:  # expected_next_date > append_date
+            print(f"... Warning! Last date of {SetFontRed(_table_name)} is {last_date}, "
+                  f"and expected next date should be {SetFontRed(expected_next_date)}, but input date = {append_date}. "
+                  f"Some days may be {SetFontYellow('overwritten')}")
+            return 2
 
 
 class CManagerLibWriter(CManagerLibReader):
