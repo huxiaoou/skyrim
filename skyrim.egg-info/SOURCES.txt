@@ -14,6 +14,7 @@ skyrim/solitude.py
 skyrim/whiterun.py
 skyrim/windhelm.py
 skyrim/winterhold.py
+skyrim/winterhold2.py
 skyrim.egg-info/PKG-INFO
 skyrim.egg-info/SOURCES.txt
 skyrim.egg-info/dependency_links.txt
