@@ -191,6 +191,17 @@ class CCalendarMonthly(CCalendar):
         iter_months = self.get_iter_month(bgn_last_month, stp_last_month)
         return iter_months
 
+    def map_iter_dates_to_iter_months2(self, bgn_date: str, stp_date: str):
+        # last date of each month is the position adjust date
+        iter_dates = self.get_iter_list(bgn_date, stp_date, True)
+        end_next_date = self.get_next_date(iter_dates[-1], 1)
+        iter_next_dates = iter_dates[1:] + [end_next_date]
+        iter_months = []
+        for this_date, next_date in zip(iter_dates, iter_next_dates):
+            if this_date[0:6] != next_date[0:6]:
+                iter_months.append(this_date[0:6])
+        return iter_months
+
     def get_bgn_and_end_dates_for_trailing_window(self, end_month: str, trn_win: int):
         bgn_month = self.get_next_month(end_month, -trn_win + 1)
         bgn_date = self.get_first_date_of_month(bgn_month)

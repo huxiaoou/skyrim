@@ -3,7 +3,7 @@ import pandas as pd
 import sqlite3 as sql3
 from typing import Dict, List
 import datetime as dt
-from skyrim.whiterun import CCalendar, SetFontRed, SetFontYellow
+from skyrim.whiterun import CCalendar, CCalendarMonthly, SetFontRed, SetFontYellow
 
 
 class CTable(object):
@@ -175,6 +175,28 @@ class CManagerLibReader(CMangerLibBase):
         else:  # expected_next_date > append_date
             print(f"... Warning! Last date of {SetFontRed(_table_name)} is {last_date}, "
                   f"and expected next date should be {SetFontRed(expected_next_date)}, but input date = {append_date}. "
+                  f"Some days may be {SetFontYellow('overwritten')}")
+            return 2
+
+    def check_continuity_monthly(self, append_month: str, t_calendar: CCalendarMonthly,
+                                 t_using_default_table: bool = True, t_table_name: str = "") -> int:
+        _table_name = self.m_default_table if t_using_default_table else t_table_name
+        cmd_sql_get_last_date = f"SELECT trade_date FROM {_table_name} ORDER BY rowid DESC LIMIT 1;"
+        rows = self.m_cursor.execute(cmd_sql_get_last_date).fetchall()
+        if len(rows) > 0:
+            expected_next_month = t_calendar.get_next_month(last_month := rows[0][0][0:6], 1)
+        else:
+            last_month, expected_next_month = "not available", ""
+        if expected_next_month == append_month:
+            return 0
+        elif expected_next_month < append_month:
+            print(f"... Warning! Last month of {SetFontRed(_table_name)} is {last_month}, "
+                  f"and expected next month should be {SetFontRed(expected_next_month)}, but input date = {append_month}. "
+                  f"Some days may be {SetFontYellow('omitted')}")
+            return 1
+        else:  # expected_next_month > append_month
+            print(f"... Warning! Last month of {SetFontRed(_table_name)} is {last_month}, "
+                  f"and expected next month should be {SetFontRed(expected_next_month)}, but input date = {append_month}. "
                   f"Some days may be {SetFontYellow('overwritten')}")
             return 2
 
