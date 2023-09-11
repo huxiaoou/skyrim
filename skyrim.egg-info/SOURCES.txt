@@ -1,9 +1,6 @@
 README.md
 setup.py
 skyrim/__init__.py
-skyrim/configurationCloud.py
-skyrim/configurationHome.py
-skyrim/configurationOffice.py
 skyrim/dawnstar.py
 skyrim/falkreath.py
 skyrim/markarth.py
