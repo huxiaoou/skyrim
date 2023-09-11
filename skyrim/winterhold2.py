@@ -101,6 +101,7 @@ class CPlotFromDataFrame(CPlotAdjustAxes):
         else:
             xticks = None
         if xticks is not None:
+            # no available for scatter plot
             xticklabels = self.plot_df.index[xticks]
             self.ax.set_xticks(xticks)
             self.ax.set_xticklabels(xticklabels)
@@ -173,6 +174,34 @@ class CPlotBars(CPlotFromDataFrame):
         return 0
 
 
+class CPlotScatter(CPlotFromDataFrame):
+    def __init__(self, point_x: str, point_y: str, point_size=None, point_color=None,
+                 annotations_using_index: bool = False, annotations: list[str] = None,
+                 annotations_location_drift: tuple = (0, 0),
+                 annotations_fontsize: int = 12,
+                 **kwargs):
+        self.point_x = point_x
+        self.point_y = point_y
+        self.point_size = point_size
+        self.point_color = point_color
+        self.annotations_using_index = annotations_using_index
+        self.annotations = annotations
+        self.annotations_location_drift = annotations_location_drift
+        self.annotations_fontsize = annotations_fontsize
+        super().__init__(**kwargs)
+
+    def _core(self):
+        self.plot_df.plot.scatter(ax=self.ax, x=self.point_x, y=self.point_y, s=self.point_size, c=self.point_color)
+        if self.annotations_using_index:
+            self.annotations = self.plot_df.index.tolist()
+        if self.annotations:
+            for loc_x, loc_y, label in zip(self.plot_df[self.point_x], self.plot_df[self.point_y], self.annotations):
+                self.ax.annotate(label, xy=(loc_x, loc_y),
+                                 xytext=(loc_x + self.annotations_location_drift[0], loc_y + self.annotations_location_drift[1]),
+                                 fontsize=self.annotations_fontsize)
+        return 0
+
+
 class CPlotLinesTwinx(CPlotLines):
     def __init__(self,
                  ytick_count_twin: int = None, ytick_spread_twin: float = None, ylabel_twin: str = None, ylabel_size_twin: int = 12, ylim_twin: tuple = (None, None),
@@ -240,6 +269,29 @@ class CPlotLinesTwinxBar(CPlotLinesTwinx):
             self.bar_df.plot.bar(ax=self.ax_twin, color=self.bar_color, width=self.bar_width, alpha=self.bar_alpha)
         else:
             self.bar_df.plot.bar(ax=self.ax_twin, colormap=self.bar_colormap, width=self.bar_width, alpha=self.bar_alpha)
+        super()._core()
+        return 0
+
+
+class CPlotLinesTwinxLine(CPlotLinesTwinx):
+    def __init__(self, plot_df: pd.DataFrame, primary_cols: list[str], secondary_cols: list[str],
+                 second_line_width: float = 2, second_line_style: list = None, second_line_color: list = None,
+                 second_colormap: str = None,
+                 **kwargs):
+        self.second_line_df = plot_df[secondary_cols]
+        self.ax_twin: plt.Axes | None = None
+        self.second_line_width = second_line_width
+        self.second_line_style = second_line_style
+        self.second_line_color = second_line_color
+        self.second_colormap = second_colormap
+        super().__init__(plot_df=plot_df[primary_cols], **kwargs)
+
+    def _core(self):
+        self.ax_twin = self.ax.twinx()
+        if self.second_line_color:
+            self.second_line_df.plot.line(ax=self.ax_twin, lw=self.second_line_width, style=self.second_line_style if self.line_style else "-", color=self.second_line_color)
+        else:
+            self.second_line_df.plot.line(ax=self.ax_twin, lw=self.second_line_width, style=self.second_line_style if self.line_style else "-", colormap=self.second_colormap)
         super()._core()
         return 0
 
