@@ -4,6 +4,15 @@ This project is designed to provide some highly frequently used tools in daily r
 
 ---
 
+## Build and Install
+
+```powershell
+python setup.py build
+python setup.py sdist
+pip install .\dist\skyrim-1.0.0.tar.gz
+```
+
+
 ## whiterun.py
 
 + Class:CCalendar, to manage trade days in research, provide interfaces to get satisfy multiple needs.

@@ -3,7 +3,6 @@ import sys
 import numpy as np
 import pandas as pd
 import re
-from typing import List
 
 """
 0.  provide two frequently used classes about trade date calendar and futures' instrument information
@@ -242,6 +241,26 @@ class CInstrumentInfoTable(object):
             self.instrument_info_df = pd.read_csv(t_path).set_index(t_index_label)
         self.instrument_info_df["precision"] = self.instrument_info_df["miniSpread"].map(lambda z: max(int(-np.floor(np.log10(z))), 0))
 
+    def get_universe(self, code_format: str = "wind") -> list[str]:
+        """
+
+        :param code_format: one of ["wind", "vanilla"]
+        :return:
+        """
+        if code_format.upper() == "WIND":
+            try:
+                return self.instrument_info_df["windCode"].tolist()
+            except KeyError:
+                return self.instrument_info_df.index.tolist()
+        elif code_format.upper() == "VANILLA":
+            try:
+                return self.instrument_info_df["instrumentId"].tolist()
+            except KeyError:
+                return self.instrument_info_df.index.tolist()
+        else:
+            print("... not a right input for argument 'code_format', please check again")
+            return []
+
     def get_multiplier(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "contractMultiplier"]
 
@@ -261,6 +280,7 @@ class CInstrumentInfoTable(object):
             "CZCE": "郑商所",
             "SHFE": "上期所",
             "INE": "上海能源",
+            "GFE": "广期所",
             "CFFEX": "中金所",
         }[exchange_id_eng]
         return exchange_id_chs
@@ -273,41 +293,6 @@ class CInstrumentInfoTable(object):
 
     def get_ngt_sec_end_minute(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "ngtSecEndMinute"]
-
-    def get_cost_rate_float(self, t_instrument_id: str):
-        return self.instrument_info_df.at[t_instrument_id, "cost_float"]
-
-    def get_cost_rate_fix(self, t_instrument_id: str):
-        return self.instrument_info_df.at[t_instrument_id, "cost_fix"]
-
-    def is_close_today_free(self, t_instrument_id: str) -> bool:
-        return self.instrument_info_df.at[t_instrument_id, "isCloseTodayFree"] > 0
-
-    def cal_abs_pnl(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float):
-        _contract_multiplier = self.get_multiplier(t_instrument_id=t_instrument_id)
-        return (t_close_price - t_open_price) * _contract_multiplier * t_qty
-
-    def clearing_cost(self, t_instrument_id: str, t_qty: int, t_open_price: float, t_close_price: float, t_adjust_rate: float):
-        """
-
-        :param t_instrument_id:
-        :param t_qty:
-        :param t_open_price:
-        :param t_close_price:
-        :param t_adjust_rate: the ratio of real cost to base cost (charged by SHFE, DCE, CZCE), 1 means equal.
-                             real cost = t_adjust_rate * base cost
-        :return:
-        """
-        _contract_multiplier = self.get_multiplier(t_instrument_id=t_instrument_id)
-        _rate_float = self.get_cost_rate_float(t_instrument_id=t_instrument_id)
-        _rate_fix = self.get_cost_rate_fix(t_instrument_id=t_instrument_id)
-        if self.is_close_today_free(t_instrument_id=t_instrument_id):
-            _cost_float = (t_open_price + t_close_price) / 2 * _contract_multiplier * t_qty * _rate_float
-            _cost_fix = _rate_fix
-        else:
-            _cost_float = (t_open_price + t_close_price) * _contract_multiplier * t_qty * _rate_float
-            _cost_fix = _rate_fix * 2
-        return (_cost_float + _cost_fix) * t_adjust_rate
 
 
 def convert_contract_id_to_wind_format(t_contract_id: str, t_instru_info_table: CInstrumentInfoTable):
@@ -354,28 +339,6 @@ def fix_contract_id(x: str, t_exchange_id: str, t_instru_id_len: int, t_trade_da
 
 
 # functions about Markdown
-def df_to_md_strings(df: pd.DataFrame, using_index: bool = False, index_name: str = ""):
-    def rejoin(s: List[str]):
-        return "|" + "|".join(s) + "|"
-
-    if using_index:
-        df.index.name = index_name
-    df_strs = df.to_string(index=using_index, index_names=using_index)
-    rows = df_strs.split("\n")
-    n_col = len(rows[0].split()) + int(using_index)
-    md_rows = [rejoin(r.split()) for r in rows]
-    if using_index:
-        md_rows[0] = "|" + index_name + md_rows[0]
-        md_rows.pop(1)
-    md_rows.insert(1, rejoin(["---"] * n_col))
-    return md_rows
-
-
-def md_strings_to_md_file(md_rows: List[str], md_path: str):
-    with open(md_path, "w+") as f:
-        for md_row in md_rows:
-            f.write(md_row + "\n")
-    return 0
 
 
 def df_to_md_files(df: pd.DataFrame, md_path: str, using_index: bool = False, index_name: str = ""):
@@ -387,5 +350,28 @@ def df_to_md_files(df: pd.DataFrame, md_path: str, using_index: bool = False, in
     :param index_name: if using_index, must be provided
     :return:
     """
-    md_strings_to_md_file(md_rows=df_to_md_strings(df, using_index, index_name), md_path=md_path)
+
+    def __rejoin(s: list[str]):
+        return "|" + "|".join(s) + "|"
+
+    def __df_to_md_strings():
+        if using_index:
+            df.index.name = index_name
+        df_strs = df.to_string(index=using_index, index_names=using_index)
+        rows = df_strs.split("\n")
+        n_col = len(rows[0].split()) + int(using_index)
+        md_rows = [__rejoin(r.split()) for r in rows]
+        if using_index:
+            md_rows[0] = "|" + index_name + md_rows[0]
+            md_rows.pop(1)
+        md_rows.insert(1, __rejoin(["---"] * n_col))
+        return md_rows
+
+    def __md_strings_to_md_file(md_rows: list[str]):
+        with open(md_path, "w+") as f:
+            for md_row in md_rows:
+                f.write(md_row + "\n")
+        return 0
+
+    __md_strings_to_md_file(md_rows=__df_to_md_strings())
     return 0
