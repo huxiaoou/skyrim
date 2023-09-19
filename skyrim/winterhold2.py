@@ -1,4 +1,7 @@
 import os
+import re
+import shutil
+import datetime as dt
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,6 +13,77 @@ if this_platform == "WINDOWS":
     # plt.rcParams["font.family"] = ["sans-serif"]
     plt.rcParams["font.sans-serif"] = ["SimHei"]
     plt.rcParams["axes.unicode_minus"] = False  # 设置正负号
+
+
+def check_and_mkdir(t_path: str):
+    if not os.path.exists(t_path):
+        os.mkdir(t_path)
+        return 1
+    else:
+        return 0
+
+
+def remove_files_in_the_dir(t_path: str):
+    for f in os.listdir(t_path):
+        os.remove(os.path.join(t_path, f))
+    return 0
+
+
+def check_and_remove_tree(t_path: str):
+    if os.path.exists(t_path):
+        shutil.rmtree(t_path)
+    return 0
+
+
+def get_mix_string_len(t_mix_string: str, t_expected_len: int):
+    """
+
+    :param t_mix_string: example "食品ETF09"
+    :param t_expected_len: length of expected output string
+    :return: "{:ks}".format(t_mix_string) would occupy t_expected_len characters when print,
+             which will make t_mix_string aligned with pure English string
+    """
+    # chs_string = re.sub("[0-9a-zA-Z]", "", t_mix_string)
+    chs_string = re.sub("[\\da-zA-Z]", "", t_mix_string)
+    chs_string_len = len(chs_string)
+    k = max(t_expected_len - chs_string_len, len(t_mix_string) + chs_string_len)
+    return k
+
+
+def timer(func):
+    def inner(**kwargs):
+        t1 = dt.datetime.now()
+        res = func(**kwargs)
+        t2 = dt.datetime.now()
+        print("... bgn @ {0} for {1}".format(t1, func.__name__))
+        print("... end @ {0} for {1}".format(t2, func.__name__))
+        print("... time consuming: {} seconds".format((t2 - t1).total_seconds()))
+        print("\n")
+        return res
+
+    return inner
+
+
+def date_format_converter_08_to_10(t_date: str):
+    # "202100101" -> "2021-01-01"
+    return t_date[0:4] + "-" + t_date[4:6] + "-" + t_date[6:8]
+
+
+def date_format_converter_10_to_08(t_date: str):
+    # "20210-01-01" -> "20210101"
+    return t_date.replace("-", "")
+
+
+def shift_date_string(raw_date: str, shift: int = 1, date_format: str = "%Y%m%d"):
+    """
+
+    :param raw_date:
+    :param shift:  > 0, go to the future; < 0, go to the past
+    :param date_format:
+    :return:
+    """
+    shift_day = dt.datetime.strptime(raw_date, date_format) + dt.timedelta(days=shift)
+    return shift_day.strftime(date_format)
 
 
 class CPlotBase(object):
