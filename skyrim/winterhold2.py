@@ -5,14 +5,14 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import platform
+# import platform
 
-this_platform = platform.system().upper()
-if this_platform == "WINDOWS":
-    # to make Chinese code compatible
-    # plt.rcParams["font.family"] = ["sans-serif"]
-    plt.rcParams["font.sans-serif"] = ["SimHei"]
-    plt.rcParams["axes.unicode_minus"] = False  # 设置正负号
+# this_platform = platform.system().upper()
+# if this_platform == "WINDOWS":
+# to make Chinese code compatible
+# plt.rcParams["font.family"] = ["sans-serif"]
+plt.rcParams["font.sans-serif"] = ["SimHei"]
+plt.rcParams["axes.unicode_minus"] = False  # 设置正负号
 
 
 def check_and_mkdir(t_path: str):
