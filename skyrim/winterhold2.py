@@ -5,6 +5,7 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 # import platform
 
 # this_platform = platform.system().upper()
@@ -13,6 +14,8 @@ import matplotlib.pyplot as plt
 # plt.rcParams["font.family"] = ["sans-serif"]
 plt.rcParams["font.sans-serif"] = ["SimHei"]
 plt.rcParams["axes.unicode_minus"] = False  # 设置正负号
+plt.rcParams["xtick.direction"] = "in"  # 将x轴的刻度方向设置向内
+plt.rcParams["ytick.direction"] = "in"  # 将y轴的刻度方向设置向内
 
 
 def check_and_mkdir(t_path: str):
