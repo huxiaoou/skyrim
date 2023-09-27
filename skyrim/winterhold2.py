@@ -118,8 +118,8 @@ class CPlotBase(object):
 
 class CPlotAdjustAxes(CPlotBase):
     def __init__(self, title: str = None, title_size: int = 32,
-                 xtick_count: int = None, xtick_spread: float = None, xlabel: str = None, xlabel_size: int = 12, xlim: tuple = (None, None),
-                 ytick_count: int = None, ytick_spread: float = None, ylabel: str = None, ylabel_size: int = 12, ylim: tuple = (None, None),
+                 xtick_count: int = 10, xtick_spread: float = None, xlabel: str = None, xlabel_size: int = 12, xlim: tuple = (None, None),
+                 ytick_count: int = 10, ytick_spread: float = None, ylabel: str = None, ylabel_size: int = 12, ylim: tuple = (None, None),
                  xtick_label_size: int = 12, xtick_label_rotation: int = 0, xtick_label_font: str = "Times New Roman",
                  ytick_label_size: int = 12, ytick_label_rotation: int = 0, ytick_label_font: str = "Times New Roman",
                  legend_loc: str = "upper left", legend_fontsize: int = 12,
@@ -138,10 +138,10 @@ class CPlotAdjustAxes(CPlotBase):
     def _set_axes(self):
         if self.ylim != (None, None):
             y_range = self.ylim[1] - self.ylim[0]
-            if self.ytick_count:
-                yticks = np.arange(self.ylim[0], self.ylim[1], y_range / self.ytick_count)
-            elif self.ytick_spread:
+            if self.ytick_spread:
                 yticks = np.arange(self.ylim[0], self.ylim[1], self.ytick_spread)
+            elif self.ytick_count:
+                yticks = np.arange(self.ylim[0], self.ylim[1], y_range / self.ytick_count)
             else:
                 yticks = None
 
@@ -171,10 +171,10 @@ class CPlotFromDataFrame(CPlotAdjustAxes):
         super().__init__(**kwargs)
 
     def _set_axes(self):
-        if self.xtick_count:
-            xticks = np.arange(0, self.data_len, max(int((self.data_len - 1) / self.xtick_count), 1))
-        elif self.xtick_spread:
+        if self.xtick_spread:
             xticks = np.arange(0, self.data_len, self.xtick_spread)
+        elif self.xtick_count:
+            xticks = np.arange(0, self.data_len, max(int((self.data_len - 1) / self.xtick_count), 1))
         else:
             xticks = None
         if xticks is not None:
