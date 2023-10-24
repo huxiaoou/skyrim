@@ -3,15 +3,15 @@ import numpy as np
 import pandas as pd
 from skyrim.whiterun import CInstrumentInfoTable, parse_instrument_from_contract_wind, CCalendar
 from skyrim.falkreath import CManagerLibReader
-from typing import List, Dict, Tuple, NewType, Union
+from typing import NewType
 
 
 # ------------------------------------------ Classes general -------------------------------------------------------------------
 # --- Class:Manager Market Data
 class CManagerMarketData(object):
-    def __init__(self, t_mother_universe: List[str], t_dir_market_data: str, t_dir_major_data: str):
+    def __init__(self, t_mother_universe: list[str], t_dir_market_data: str, t_dir_major_data: str):
         # load market data
-        self.m_md: Dict[str, Dict[str, pd.DataFrame]] = {"open": {}, "close": {}}
+        self.m_md: dict[str, dict[str, pd.DataFrame]] = {"open": {}, "close": {}}
         for prc_type in self.m_md:
             for instrument_id in t_mother_universe:
                 instrument_md_file = "{}.md.{}.csv.gz".format(instrument_id, prc_type)
@@ -20,12 +20,15 @@ class CManagerMarketData(object):
                 self.m_md[prc_type][instrument_id] = instrument_md_df
 
         # load major data info
-        self.m_major: Dict[str, pd.DataFrame] = {}
+        src_db_reader = CManagerLibReader(t_dir_major_data, "major_minor.db")
+        self.m_major: dict[str, pd.DataFrame] = {}
         for instrument_id in t_mother_universe:
-            instrument_major_data_file = "major_minor.{}.csv.gz".format(instrument_id)
-            instrument_major_data_path = os.path.join(t_dir_major_data, instrument_major_data_file)
-            instrument_major_data_df = pd.read_csv(instrument_major_data_path, dtype={"trade_date": str}, usecols=["trade_date", "n_contract"]).set_index("trade_date")
-            self.m_major[instrument_id] = instrument_major_data_df
+            instrument_major_data_df = src_db_reader.read(
+                t_value_columns=["trade_date", "n_contract"],
+                t_using_default_table=False,
+                t_table_name=instrument_id.replace(".", "_"))
+            self.m_major[instrument_id] = instrument_major_data_df.set_index("trade_date")
+        src_db_reader.close()
 
     def inquiry_price_at_date(self, t_contact: str, t_instrument_id: str, t_trade_date: str, t_prc_type: str = "close") -> float:
         # t_prc_type must be in ["open", "close"]
@@ -43,7 +46,7 @@ class CManagerSignalBase(object):
                  t_is_trend_follow: bool = True, t_print_details: bool = True):
         """
 
-        :param t_mother_universe: List of all instruments, instrument not in this list can not be traded
+        :param t_mother_universe: list of all instruments, instrument not in this list can not be traded
         :param t_available_universe_dir:
         :param t_factors_by_tm_dir:
         :param t_factor_lbl:
@@ -169,7 +172,7 @@ class CManagerSignalOpt(CManagerSignalBase):
 # --- custom type definition
 TypeContract = NewType("TypeContract", str)
 TypeDirection = NewType("TypeDirection", int)
-TypePositionKey = NewType("TypeKey", Tuple[TypeContract, TypeDirection])
+TypePositionKey = NewType("TypeKey", tuple[TypeContract, TypeDirection])
 TypeOperation = NewType("TypeOperation", int)
 
 # --- custom CONST
@@ -181,7 +184,7 @@ CONST_OPERATION_CLOSE: TypeOperation = TypeOperation(-1)
 
 # --- Class: Trade
 class CTrade(object):
-    def __init__(self, t_contract: Union[TypeContract, str], t_direction: TypeDirection, t_operation: TypeOperation, t_quantity: int, t_instrument_id: str,
+    def __init__(self, t_contract: TypeContract | str, t_direction: TypeDirection, t_operation: TypeOperation, t_quantity: int, t_instrument_id: str,
                  t_contract_multiplier: int):
         """
 
@@ -206,10 +209,10 @@ class CTrade(object):
     def get_key(self) -> TypePositionKey:
         return self.m_key
 
-    def get_tuple_trade_id(self) -> Tuple[str, str]:
+    def get_tuple_trade_id(self) -> tuple[str, str]:
         return self.m_contract, self.m_instrument_id
 
-    def get_tuple_execution(self) -> Tuple[TypeOperation, int, float]:
+    def get_tuple_execution(self) -> tuple[TypeOperation, int, float]:
         return self.m_operation, self.m_quantity, self.m_executed_price
 
     def operation_is(self, t_operation: TypeOperation) -> bool:
@@ -236,7 +239,7 @@ class CPosition(object):
     def get_key(self) -> TypePositionKey:
         return self.m_key
 
-    def get_tuple_pos_id(self) -> Tuple[str, str]:
+    def get_tuple_pos_id(self) -> tuple[str, str]:
         return self.m_contract, self.m_instrument_id
 
     def get_quantity(self):
@@ -248,13 +251,13 @@ class CPosition(object):
     def is_empty(self) -> bool:
         return self.m_quantity == 0
 
-    def cal_trade_from_other_pos(self, t_target: "CPosition") -> Union[None, CTrade]:
+    def cal_trade_from_other_pos(self, t_target: "CPosition") -> CTrade | None:
         """
 
         :param t_target: another position unit, usually new(target) position, must have the same key as self
         :return: None or a new trade
         """
-        new_trade: Union[None, CTrade] = None
+        new_trade: CTrade | None = None
         delta_quantity: int = t_target.m_quantity - self.m_quantity
         if delta_quantity > 0:
             new_trade: CTrade = CTrade(
@@ -364,15 +367,15 @@ class CPortfolio(object):
 
         # pnl
         self.m_init_cash: float = t_init_cash
-        self.m_realized_pnl_daily_details: List[dict] = []
-        self.m_realized_pnl_daily_df: Union[pd.DataFrame, None] = None
+        self.m_realized_pnl_daily_details: list[dict] = []
+        self.m_realized_pnl_daily_df: pd.DataFrame | None = None
         self.m_realized_pnl_daily: float = 0
         self.m_realized_pnl_cum: float = 0
         self.m_unrealized_pnl: float = 0
         self.m_nav: float = self.m_init_cash + self.m_realized_pnl_cum + self.m_unrealized_pnl
 
         # position
-        self.m_manager_pos: Dict[TypePositionKey, CPositionPlus] = {}
+        self.m_manager_pos: dict[TypePositionKey, CPositionPlus] = {}
 
         # additional
         self.m_cost_reservation: float = t_cost_reservation
@@ -386,7 +389,7 @@ class CPortfolio(object):
         self.m_dir_pid_trades: str = t_dir_pid_trades
         self.m_dir_pid_positions: str = t_dir_pid_positions
 
-    def cal_target_position(self, t_new_pos_df: pd.DataFrame, t_instru_info: CInstrumentInfoTable) -> Dict[TypePositionKey, CPosition]:
+    def cal_target_position(self, t_new_pos_df: pd.DataFrame, t_instru_info: CInstrumentInfoTable) -> dict[TypePositionKey, CPosition]:
         """
 
         :param t_new_pos_df : a DataFrame with columns = ["contract", "price", "direction", "weight"]
@@ -400,7 +403,7 @@ class CPortfolio(object):
         :param t_instru_info: an instance of CInstrumentInfoTable
         :return:
         """
-        mgr_new_pos: Dict[TypePositionKey, CPosition] = {}
+        mgr_new_pos: dict[TypePositionKey, CPosition] = {}
         tot_allocated_amt = self.m_nav / (1 + self.m_cost_reservation)
         for contract, direction, price, weight in zip(t_new_pos_df["contract"], t_new_pos_df["direction"], t_new_pos_df["price"], t_new_pos_df["weight"]):
             tgt_pos = CPosition(t_contract=contract, t_direction=direction, t_instru_info=t_instru_info)
@@ -409,8 +412,8 @@ class CPortfolio(object):
             mgr_new_pos[key] = tgt_pos
         return mgr_new_pos
 
-    def cal_trades_for_signal(self, t_mgr_new_pos: Dict[TypePositionKey, CPosition]) -> List[CTrade]:
-        trades_list: List[CTrade] = []
+    def cal_trades_for_signal(self, t_mgr_new_pos: dict[TypePositionKey, CPosition]) -> list[CTrade]:
+        trades_list: list[CTrade] = []
         # cross comparison: step 0, check if new position is in old position
         for new_key, new_pos in t_mgr_new_pos.items():
             if new_key not in self.m_manager_pos:
@@ -427,8 +430,8 @@ class CPortfolio(object):
                 trades_list.append(new_trade)
         return trades_list
 
-    def cal_trades_for_major(self, t_mgr_md: CManagerMarketData) -> List[CTrade]:
-        trades_list: List[CTrade] = []
+    def cal_trades_for_major(self, t_mgr_md: CManagerMarketData) -> list[CTrade]:
+        trades_list: list[CTrade] = []
         for old_key, old_pos in self.m_manager_pos.items():
             old_contract, instrument_id = old_pos.get_tuple_pos_id()
             new_contract = t_mgr_md.inquiry_major_contract(t_instrument_id=instrument_id, t_trade_date=self.m_update_date)
@@ -443,7 +446,7 @@ class CPortfolio(object):
                 trades_list.append(trade_open_new)
         return trades_list
 
-    def update_from_trades(self, t_trades_list: List[CTrade], t_instru_info: CInstrumentInfoTable):
+    def update_from_trades(self, t_trades_list: list[CTrade], t_instru_info: CInstrumentInfoTable):
         # trades loop
         for trade in t_trades_list:
             trade_key = trade.get_key()
@@ -546,7 +549,7 @@ class CPortfolio(object):
             # --- check signal and cal new positions
             if (ti - t_start_delay) % t_hold_period_n == 0:  # ti is a execution date
                 new_pos_df = t_mgr_signal.cal_new_pos(t_sig_date=signal_date, t_exe_date=trade_date)
-                mgr_new_pos = self.cal_target_position(t_new_pos_df=new_pos_df, t_instru_info=t_instru_info)  # Type(mgr_new_pos)=Dict[TypeKey, CPosition]
+                mgr_new_pos = self.cal_target_position(t_new_pos_df=new_pos_df, t_instru_info=t_instru_info)  # Type(mgr_new_pos)=dict[TypeKey, CPosition]
                 array_new_trades = self.cal_trades_for_signal(t_mgr_new_pos=mgr_new_pos)
                 # no major-shift check is necessary
                 # because signal would contain this information itself already
