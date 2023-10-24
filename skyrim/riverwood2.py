@@ -43,6 +43,7 @@ class CManagerSignalBase(object):
                  t_factors_by_tm_dir: str, t_factor_lbl: str,
                  t_database_structure: dict,
                  t_mgr_md: CManagerMarketData,
+                 t_minimum_weight_threshold: float,
                  t_is_trend_follow: bool = True, t_print_details: bool = True):
         """
 
@@ -51,6 +52,7 @@ class CManagerSignalBase(object):
         :param t_factors_by_tm_dir:
         :param t_factor_lbl:
         :param t_mgr_md:
+        :param t_minimum_weight_threshold:
         :param t_is_trend_follow: if true, program would long instrument with large signal values and short instrument with small values
                                   else program would long instrument with small signal values and short instrument with large values
         :param t_print_details:
@@ -76,6 +78,7 @@ class CManagerSignalBase(object):
         self.m_factor_lib.set_default(self.m_factor_lib_structure.m_tab.m_table_name)
 
         self.m_mgr_md: CManagerMarketData = t_mgr_md
+        self.m_minimum_weight_threshold = t_minimum_weight_threshold
         self.m_is_trend_follow: bool = t_is_trend_follow
         self.m_print_details: bool = t_print_details
 
@@ -158,7 +161,7 @@ class CManagerSignalOpt(CManagerSignalBase):
         else:
             # both
             t_opt_weight_df["opt"] = t_opt_weight_df[self.m_factor_lbl]
-        filter_minimum_wgt = t_opt_weight_df["opt"].abs() <= 1e-3
+        filter_minimum_wgt = t_opt_weight_df["opt"].abs() <= self.m_minimum_weight_threshold
         t_opt_weight_df.loc[filter_minimum_wgt, "opt"] = 0
         wgt_abs_sum = t_opt_weight_df["opt"].abs().sum()
         if wgt_abs_sum > 1e-4:
@@ -233,7 +236,7 @@ class CPosition(object):
         self.m_quantity: int = 0
 
     def cal_quantity(self, t_price: float, t_allocated_mkt_val: float) -> 0:
-        self.m_quantity = max(int(np.round(t_allocated_mkt_val / t_price / self.m_contract_multiplier)), 1)
+        self.m_quantity = int(np.round(t_allocated_mkt_val / t_price / self.m_contract_multiplier))
         return 0
 
     def get_key(self) -> TypePositionKey:
@@ -408,8 +411,9 @@ class CPortfolio(object):
         for contract, direction, price, weight in zip(t_new_pos_df["contract"], t_new_pos_df["direction"], t_new_pos_df["price"], t_new_pos_df["weight"]):
             tgt_pos = CPosition(t_contract=contract, t_direction=direction, t_instru_info=t_instru_info)
             tgt_pos.cal_quantity(t_price=price, t_allocated_mkt_val=tot_allocated_amt * weight)
-            key = tgt_pos.get_key()
-            mgr_new_pos[key] = tgt_pos
+            key, qty = tgt_pos.get_key(), tgt_pos.get_quantity()
+            if qty > 0:
+                mgr_new_pos[key] = tgt_pos
         return mgr_new_pos
 
     def cal_trades_for_signal(self, t_mgr_new_pos: dict[TypePositionKey, CPosition]) -> list[CTrade]:
