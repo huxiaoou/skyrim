@@ -264,6 +264,10 @@ class CInstrumentInfoTable(object):
     def get_multiplier(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "contractMultiplier"]
 
+    def get_multiplier_from_contract(self, t_contract: str):
+        instrument_id = parse_instrument_from_contract(t_contract)
+        return self.get_multiplier(instrument_id)
+
     def get_minispread(self, t_instrument_id: str):
         return self.instrument_info_df.at[t_instrument_id, "miniSpread"]
 
