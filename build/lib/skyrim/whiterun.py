@@ -227,7 +227,8 @@ class CInstrumentCalendar(object):
 
 
 class CInstrumentInfoTable(object):
-    def __init__(self, t_path: os.path, t_index_label: str = "instrumentId", t_type: str = "EXCEL", t_sheet_name: str = "InstrumentInfo"):
+    def __init__(self, t_path: os.path, t_index_label: str = "instrumentId", t_type: str = "EXCEL",
+                 t_sheet_name: str = "InstrumentInfo"):
         """
 
         :param t_path: InstrumentInfo file path, could be a txt(csv) or xlsx
@@ -239,7 +240,8 @@ class CInstrumentInfoTable(object):
             self.instrument_info_df = pd.read_excel(t_path, sheet_name=t_sheet_name).set_index(t_index_label)
         else:
             self.instrument_info_df = pd.read_csv(t_path).set_index(t_index_label)
-        self.instrument_info_df["precision"] = self.instrument_info_df["miniSpread"].map(lambda z: max(int(-np.floor(np.log10(z))), 0))
+        self.instrument_info_df["precision"] = self.instrument_info_df["miniSpread"].map(
+            lambda z: max(int(-np.floor(np.log10(z))), 0))
 
     def get_universe(self, code_format: str = "wind") -> list[str]:
         """
@@ -379,3 +381,8 @@ def df_to_md_files(df: pd.DataFrame, md_path: str, using_index: bool = False, in
 
     __md_strings_to_md_file(md_rows=__df_to_md_strings())
     return 0
+
+
+def error_handler(error):
+    print(f"'Error': {error}", flush=True)
+    return -1
